@@ -56,16 +56,3 @@ To use the Expense Tracker Telegram Bot, follow these steps:
    ```
    npm start
    ```
-
-7. **Interact with the Bot**: Open the Telegram app and search for your bot. Start a conversation and begin tracking your expenses.
-
-## Contributing
-
-Contributions to the Expense Tracker Telegram Bot project are welcome! If you'd like to contribute, please follow these guidelines:
-
-1. Fork the repository and create your branch from `main`.
-2. Make your changes, ensuring that the code adheres to the project's coding standards.
-3. Write tests to validate the functionality of your changes.
-4. Ensure all tests pass successfully.
-5. Submit a pull request detailing your changes, the problem you solved, and any relevant information.
-
