@@ -2,6 +2,10 @@ import os
 from dotenv import load_dotenv
 from flask import Flask
 import dbManager
+import jsonManager
+import threading
+import asyncio
+
 
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram import Bot, Dispatcher, executor, types
@@ -29,10 +33,15 @@ mode = os.environ.get('TELEBOT_ENV', 'development')  # Default to development mo
 
 if mode == 'production':
     app.config.from_pyfile('settings/configProd.py')
+    flask_thread = threading.Thread(target=app.run, kwargs={'debug': False, 'use_reloader': False})
 else:
+    flask_thread = threading.Thread(target=app.run, kwargs={'debug': True, 'use_reloader': False})
     app.config.from_pyfile('settings/configDev.py')
 
 
+flask_thread.start()
+
+# Start the Telegram bot using the aiogram executor
 
 #
 # ----- Bot Setup ----- #
@@ -40,6 +49,7 @@ else:
 bot = Bot(token=app.config["BOT_TOKEN"])
 storage = MemoryStorage()  # external storage is supported!
 dp = Dispatcher(bot, storage=storage)
+
 
 
 #
@@ -143,7 +153,9 @@ async def random_value(call: types.CallbackQuery):
     messageID = call.message.message_id
 
     # if (dbManager.userExists(call.message.chat.id)):
-    if (True):
+    if (jsonManager.getMonthExpenses(app.config["MODE"], chatID)):
+        
+        print(jsonManager.getMonthExpenses(app.config["MODE"], chatID))
         if call.data == "portfolio":
             
             await bot.edit_message_reply_markup(
@@ -164,12 +176,9 @@ async def random_value(call: types.CallbackQuery):
                                     reply_markup=ikBenz)
         await call.answer()    
     else:
+        
         await call.message.answer("No tienes acceso a este servicio")   
 
 
-
-
 if __name__ == '__main__':
-    executor.start_polling(dp)
-    app.run()
-    
+    executor.start_polling(dp, skip_updates=True)
