@@ -1,6 +1,6 @@
 from __future__ import print_function
 import os
-import json
+import usersManager
 import datetime
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -32,7 +32,7 @@ def loadPortfolio(chatID):
 
         if (chatID not in portfolios):
                 creds = service_account.Credentials.from_service_account_file(
-                    getUserCreds(chatID), scopes=os.environ.get('SCOPES'))
+                    usersManager.getUserCreds(chatID), scopes=os.environ.get('SCOPES'))
 
                 service = build('sheets', 'v4', credentials = creds)
 
@@ -43,49 +43,7 @@ def loadPortfolio(chatID):
         return portfolios[chatID]
 
 
-# Check if user exists in users.json
-def userExists(chatID):
-        with open('database/users.json') as f:
-                data = json.load(f)
 
-        try:
-                user = data[str(chatID)]
-                return True
-        except:
-                return False
-
-        
-
-
-
-# ----------- USERS DATA ACCESS  --------------- #
-
-def getUserData(chatID):
-        with open('database/users.json') as f:
-                data = json.load(f)
-        return data[str(chatID)]["credFile"], data[str(chatID)]["sheetsFile"]
-
-def getUserCreds(chatID):
-        with open('database/users.json') as f:
-                data = json.load(f)
-        return data[str(chatID)]["credFile"]
-
-
-
-
-def getUserName(chatID):
-        with open('database/users.json') as f:
-                data = json.load(f)
-
-        return data[str(chatID)]["username"]  
-
-def getUserDateFormat(chatID):
-        with open('database/users.json') as f:
-                data = json.load(f)
-
-        return data[str(chatID)]["dateFormat"]        
-
-# ----------- END USERS DATA ACCESS  --------------- #
 
 def dateToDDMM(date):
         date2 = datetime.datetime.strptime(date, "%m/%d/%Y")
@@ -101,8 +59,8 @@ def dateToMMDD(date):
 def newExpense(chatID, expenses):
         
         portfolio = loadPortfolio(chatID)
-        credentials, sheetsFile = getUserData(chatID)
-        dateFormat = getUserDateFormat(chatID)
+        credentials, sheetsFile = usersManager.getUserData(chatID)
+        dateFormat = usersManager.getUserDateFormat(chatID)
         
         for exp in expenses:
 
@@ -137,7 +95,7 @@ def newExpense(chatID, expenses):
                                 valueInputOption="USER_ENTERED",
                                 # insertDataOption="INSERT_ROWS",
                                 body={"values":expense}).execute()
-                        print('Nueva transacción: ' + getUserName(chatID) + " --> " + str(expense))
+                        print('Nueva transacción: ' + usersManager.getUserName(chatID) + " --> " + str(expense))
                         # return True
 
                 except HttpError as error:
@@ -147,8 +105,8 @@ def newExpense(chatID, expenses):
 def deleteExpense(chatID, date, index):
         
         portfolio = loadPortfolio(chatID)
-        credentials, sheetsFile = getUserData(chatID)
-        dateFormat = getUserDateFormat(chatID)
+        credentials, sheetsFile = usersManager.getUserData(chatID)
+        dateFormat = usersManager.getUserDateFormat(chatID)
 
         # Sheet corresponding to the months expense
         dateClass = datetime.datetime.strptime(date, "%d/%m/%Y")
@@ -168,7 +126,7 @@ def deleteExpense(chatID, date, index):
 
 def getMonthExpenses(chatID, date, category, subcategory):
         portfolio = loadPortfolio(chatID)
-        credentials, sheetsFile = getUserData(chatID)
+        credentials, sheetsFile = usersManager.getUserData(chatID)
         
         try:
                 dateClass = datetime.datetime.strptime(date, "%d/%m/%Y")
