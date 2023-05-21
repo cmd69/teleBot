@@ -37,7 +37,7 @@ def cache_user_data(func):
 
 @cache_user_data
 def getUserExpensesFile(mode, chatID):
-    json_file = 'database/dev/users.json' if mode == 'development' else 'database/prod/users.json'
+    json_file = 'database/dev/users.json' if mode == 'dev' else 'database/prod/users.json'
     try:
         with open(json_file) as f:
             data = json.load(f)
@@ -61,7 +61,7 @@ def getExpenses(mode, chatID):
 
 @cache_user_data
 def getUserCategoriesFile(mode, chatID):
-    json_file = 'database/dev/users.json' if mode == 'development' else 'database/prod/users.json'
+    json_file = 'database/dev/users.json' if mode == 'dev' else 'database/prod/users.json'
     try:
         with open(json_file) as f:
             data = json.load(f)
@@ -88,7 +88,7 @@ def getUserCategories(mode, chatID):
 @cache_user_data
 def userExists(mode, chatID):
     try:
-        with open('database/dev/users.json' if mode == 'development' else 'database/prod/users.json') as f:
+        with open('database/dev/users.json' if mode == 'dev' else 'database/prod/users.json') as f:
             data = json.load(f)
             return str(chatID) in data
     except FileNotFoundError:
@@ -117,20 +117,20 @@ def getMonthExpenses(mode, chatID, date, category, subcategory):
 
     return expenses, total
 
-@cache_user_data
-def getSubcategories(mode, chatID, category):
-    try:
-        categories = getUserCategories(mode, chatID)
+# @cache_user_data
+# def getSubcategories(mode, chatID, category):
+#     try:
+#         categories = getUserCategories(mode, chatID)
 
-        subcategories = []
-        for elem in categories:
-            cat = elem.rstrip(elem[-1:])
-            if cat == category:
-                subcategories.append(elem)
+#         subcategories = []
+#         for elem in categories:
+#             cat = elem.rstrip(elem[-1:])
+#             if cat == category:
+#                 subcategories.append(elem)
 
-        return subcategories
-    except FileNotFoundError:
-        raise Exception("Categories file not found.")
+#         return subcategories
+#     except FileNotFoundError:
+#         raise Exception("Categories file not found.")
 
 
 

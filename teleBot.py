@@ -29,9 +29,9 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 # ----- Flask Setup ----- #
 #
 app = Flask(__name__)
-mode = os.environ.get('TELEBOT_ENV', 'development')  # Default to development mode if not specified
+mode = os.environ.get('TELEBOT_ENV', 'dev')  # Default to development mode if not specified
 
-if mode == 'production':
+if mode == 'prod':
     app.config.from_pyfile('settings/configProd.py')
     flask_thread = threading.Thread(target=app.run, kwargs={'debug': False, 'use_reloader': False})
 else:
