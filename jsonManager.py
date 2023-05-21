@@ -4,6 +4,7 @@ import json
 import datetime
 import sheetsManager
 import logging
+import usersManager
 import functools
 from flask_caching import Cache
 
@@ -35,22 +36,12 @@ def cache_user_data(func):
 
     return wrapper
 
-@cache_user_data
-def getUserExpensesFile(mode, chatID):
-    json_file = 'database/dev/users.json' if mode == 'dev' else 'database/prod/users.json'
-    try:
-        with open(json_file) as f:
-            data = json.load(f)
-            return data[str(chatID)]["expensesFile"]
-    except FileNotFoundError:
-        raise Exception("User expenses file not found.")
-    except (KeyError, ValueError):
-        raise Exception("Invalid JSON format in user expenses file.")
+
 
 @cache_user_data
 def getExpenses(mode, chatID):
     try:
-        expensesFile = getUserExpensesFile(mode, chatID)
+        expensesFile = usersManager.getUserExpensesFile(mode, chatID)
         with open(expensesFile) as f:
             data = json.load(f)
         return data
@@ -59,42 +50,9 @@ def getExpenses(mode, chatID):
     except (KeyError, ValueError):
         raise Exception("Invalid JSON format in expenses file.")
 
-@cache_user_data
-def getUserCategoriesFile(mode, chatID):
-    json_file = 'database/dev/users.json' if mode == 'dev' else 'database/prod/users.json'
-    try:
-        with open(json_file) as f:
-            data = json.load(f)
-            return data[str(chatID)]["categories"]
-    except FileNotFoundError:
-        raise Exception("User categories file not found.")
-    except (KeyError, ValueError):
-        raise Exception("Invalid JSON format in user categories file.")
 
-@cache_user_data
-def getUserCategories(mode, chatID):
-    try:
-        file = getUserCategoriesFile(mode, chatID)
-        with open(file) as f:
-            data = json.load(f)
 
-        categories = [elem["category"] for elem in data]
-        return categories
-    except FileNotFoundError:
-        raise Exception("Categories file not found.")
-    except (KeyError, ValueError):
-        raise Exception("Invalid JSON format in categories file.")
 
-@cache_user_data
-def userExists(mode, chatID):
-    try:
-        with open('database/dev/users.json' if mode == 'dev' else 'database/prod/users.json') as f:
-            data = json.load(f)
-            return str(chatID) in data
-    except FileNotFoundError:
-        raise Exception("Users file not found.")
-    except (KeyError, ValueError):
-        raise Exception("Invalid JSON format in users file.")
 
 @cache_user_data
 def getMonthExpenses(mode, chatID, date, category, subcategory):
@@ -117,27 +75,45 @@ def getMonthExpenses(mode, chatID, date, category, subcategory):
 
     return expenses, total
 
-# @cache_user_data
-# def getSubcategories(mode, chatID, category):
-#     try:
-#         categories = getUserCategories(mode, chatID)
-
-#         subcategories = []
-#         for elem in categories:
-#             cat = elem.rstrip(elem[-1:])
-#             if cat == category:
-#                 subcategories.append(elem)
-
-#         return subcategories
-#     except FileNotFoundError:
-#         raise Exception("Categories file not found.")
-
 
 
 
 # ╔═══════════════════╗
 # |||  JSON ACCESS  |||
 # ╚═══════════════════╝
+
+def add_expense(year, month, expense):
+    with open('data.json', 'r') as file:
+        data = json.load(file)
+    
+    for y in data['years']:
+        if y['year'] == year:
+            for m in y['months']:
+                if m['month'] == month:
+                    m['expenses'].append(expense)
+                    m['totalExpenses'] += expense['price']
+                    y['totalExpenses'] += expense['price']
+                    y['savings'] -= expense['price']
+                    break
+            break
+    
+    with open('data.json', 'w') as file:
+        json.dump(data, file, indent=4)
+
+def get_expenses(year, month):
+    with open('data.json', 'r') as file:
+        data = json.load(file)
+    
+    for y in data['years']:
+        if y['year'] == year:
+            for m in y['months']:
+                if m['month'] == month:
+                    return m['expenses']
+            break
+    
+    return []
+
+
 
 # UPDATES JSON WITH SHEETS
 # WONT BE NECESSARY
@@ -202,7 +178,7 @@ def newExpense(chatID, date, category, subcategory, price, description):
 
 def saveFile(chatID, data):
     try:
-        filename = getUserExpensesFile(chatID)
+        filename = usersManager.getUserExpensesFile(chatID)
         with open(filename, "w") as file:
             json.dump(data, file)
         file.close()
