@@ -82,27 +82,56 @@ def getMonthExpenses(mode, chatID, date, category, subcategory):
 # |||  JSON ACCESS  |||
 # ╚═══════════════════╝
 
-def add_expense(year, month, expense):
-    with open('data.json', 'r') as file:
-        data = json.load(file)
+def addExpense(mode, chatID, year, month, expense):
+    try:
+        expensesFile = usersManager.getUserExpensesFile(mode, chatID)
+    except FileNotFoundError:
+        raise Exception("Expenses file not found.")    
     
-    for y in data['years']:
-        if y['year'] == year:
-            for m in y['months']:
-                if m['month'] == month:
-                    m['expenses'].append(expense)
-                    m['totalExpenses'] += expense['price']
+    with open(expensesFile, 'r+') as file:
+        data = json.load(file)
+        for y in data['years']:
+            if y['year'] == year:
+                for m in y['months']:
+                    if m['month'] == month:
+                        m['expenses'].append(expense)
+                        m['totalExpenses'] += expense['price']
+                        y['totalExpenses'] += expense['price']
+                        break
+                else:
+                    y['months'].append({
+                        'month': month,
+                        'expenses': [expense],
+                        'income': [],
+                        'totalExpenses': expense['price'],
+                        'totalIncome': 0
+                    })
                     y['totalExpenses'] += expense['price']
-                    y['savings'] -= expense['price']
-                    break
-            break
-    
-    with open('data.json', 'w') as file:
+                break
+        else:
+            data['years'].append({
+                'year': year,
+                'months': [{
+                    'month': month,
+                    'expenses': [expense],
+                    'income': [],
+                    'totalExpenses': expense['price'],
+                    'totalIncome': 0
+                }],
+                'totalExpenses': expense['price'],
+                'totalIncome': 0,
+                'savings': 0
+            })
+        file.seek(0)
         json.dump(data, file, indent=4)
+        file.truncate()
 
-def get_expenses(year, month):
-    with open('data.json', 'r') as file:
-        data = json.load(file)
+def get_expenses(mode, chatID, year, month):
+    
+    try:
+        data = getExpenses(mode, chatID)
+    except FileNotFoundError:
+        raise Exception("Expenses file not found.")  
     
     for y in data['years']:
         if y['year'] == year:
@@ -135,8 +164,6 @@ def updateMonthExpenses(chatID, dates):
 
             id = year.get('year')
             if (str(yy) == id):
-                # print("SAVING")
-                # print(str(mm))
                 year['months'][str(mm)]['Expenses'] = sheetExpenses
                 saveFile(chatID, jsonDB)
 
