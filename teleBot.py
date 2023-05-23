@@ -25,7 +25,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 import math
 import prettytable as pt
 
-from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
+from telegram_bot_calendar import DetailedTelegramCalendar, MonthTelegramCalendar, LSTEP
 from telegram_bot_pagination import InlineKeyboardPaginator
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
@@ -293,7 +293,7 @@ async def process_name(message: types.Message, state: FSMContext):
         await state.update_data(price=priceFormatted)
 
 
-        calendar, step = DetailedTelegramCalendar().build()
+        calendar, step = DetailedTelegramCalendar(calendar_id=1).build()
         
         await bot.send_message(chatID,
                      f"Select {LSTEP[step]}",
@@ -301,9 +301,9 @@ async def process_name(message: types.Message, state: FSMContext):
 
 
 # CALENDAR FUNCTION
-@dp.callback_query_handler(DetailedTelegramCalendar.func(), state=Expense.date)
+@dp.callback_query_handler(DetailedTelegramCalendar.func(calendar_id=1), state=Expense.date)
 async def inline_kb_answer_callback_handler(query, state: FSMContext):
-    result, key, step = DetailedTelegramCalendar().process(query.data)
+    result, key, step = DetailedTelegramCalendar(calendar_id=1).process(query.data)
 
     chatID = query.message.chat.id
     messageID = query.message.message_id
@@ -781,7 +781,7 @@ async def fetchCustomMonth(call: types.CallbackQuery):
     messageID = call.message.message_id
     await FetchFilters.date.set()
     
-    calendar, step = DetailedTelegramCalendar(calendar_id=1).build()
+    calendar, step = MonthTelegramCalendar(calendar_id=2).build()
 
     
         
@@ -794,12 +794,12 @@ async def fetchCustomMonth(call: types.CallbackQuery):
                                         reply_markup=calendar)
                                         
 
-@dp.callback_query_handler(DetailedTelegramCalendar.func(calendar_id=1), state=FetchFilters.date)
+@dp.callback_query_handler(DetailedTelegramCalendar.func(calendar_id=2), state=FetchFilters.date)
 async def inline_kb_answer_callback_handler(call, state: FSMContext):
     
     chatID = call.message.chat.id
     messageID = call.message.message_id
-    result, key, step = DetailedTelegramCalendar(calendar_id=1).process(call.data)
+    result, key, step = DetailedTelegramCalendar(calendar_id=2).process(call.data)
     
     
     if not result and key:
@@ -875,7 +875,6 @@ def paginatorFactory(elements, page, gridSize, footerCommand, callbackCommand, e
 
         if (page == 1 and not expenses): 
             list.insert(0, InlineKeyboardButton(text="Todas✅", callback_data='/{}#{}'.format(callbackCommand, "Todas✅")))
-            # list.insert(1, InlineKeyboardButton(text="Cancelar❌", callback_data="cancel"))
 
         if (expenses):
             for but in list:
