@@ -67,7 +67,7 @@ def getMonthExpenses(mode, chatID, date, category, subcategory):
 
     # Assuming sheetsManager is defined elsewhere
     expenses = sheetsManager.getMonthExpenses(chatID, date, category, subcategory)
-    print(expenses)
+    
     expenses = createExpenseObj(expenses)
 
     expenses = filterExpenses(chatID, expenses, category, subcategory)
@@ -131,7 +131,7 @@ def get_expenses(mode, chatID, year, month):
     try:
         data = getExpenses(mode, chatID)
     except FileNotFoundError:
-        raise Exception("Expenses file not found.")  
+        raise Exception("Expenses file not found.")
     
     for y in data['years']:
         if y['year'] == year:

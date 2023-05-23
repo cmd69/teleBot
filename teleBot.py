@@ -7,6 +7,7 @@ import usersManager
 import json
 import threading
 import asyncio
+import datetime
 
 
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -29,7 +30,7 @@ from telegram_bot_pagination import InlineKeyboardPaginator
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from datetime import date, timedelta, datetime
+# from datetime import date, timedelta, datetime
 import dateutil.relativedelta
 
 
@@ -167,6 +168,8 @@ class Fill(StatesGroup):
 async def welcome(message: types.Message):
     await message.answer("Hola, bienvenido a tu gestor de portfolio!", reply_markup=ikMain)
 
+
+
 # Main Menu
 @dp.callback_query_handler(text = ["portfolio", "benz"])
 async def random_value(call: types.CallbackQuery):
@@ -254,7 +257,6 @@ async def process_name(message: types.Message, state: FSMContext):
         await message.answer("Selecciona una opción: ", reply_markup=ikMain)
     else:
         async with state.proxy() as data:
-            # print(message.text[:-2])
             data['subcategory'] = message.text[:-1]
 
         await Expense.next()
@@ -407,7 +409,7 @@ async def fetchExpenses(call: types.CallbackQuery):
 
 
 # Plantilla para la creación de los gastos mensuales (Dia, Categoria, Descripcion)
-def createExpensesTable(chatID, date, filter, category, subcategory):
+def createExpensesTableOG(chatID, date, filter, category, subcategory):
 
     def formatPrice(price):
         price = price.replace("$", "")
@@ -435,11 +437,12 @@ def createExpensesTable(chatID, date, filter, category, subcategory):
 
     # 1 Mostrar TODOS los gastos
     # 2 Mostrar subcategorias de una categoria
+    
     if (not filter or not subcategory):
 
 
         for exp in monthData:
-            day = datetime.strptime(exp['date'], "%d/%m/%Y").day
+            day = datetime.datetime.strptime(exp['date'], "%d/%m/%Y").day
             
             table.add_row([day, exp['category'], str(exp['price']) + ' €'])
     
@@ -447,14 +450,119 @@ def createExpensesTable(chatID, date, filter, category, subcategory):
     else:
        
         for exp in monthData:
-            day = datetime.strptime(exp['date'], "%d/%m/%Y").day
+            day = datetime.datetime.strptime(exp['date'], "%d/%m/%Y").day
             table.add_row([day, exp['description'], str(exp['price']) + ' €'])
         
     table.add_row(['T', '-', str(1000) + ' €'])
 
     
     return table
-        
+
+# Plantilla para la creación de los gastos mensuales (Dia, Categoria, Descripcion)
+def createExpensesTable(chatID, date, filter, category, subcategory, income):
+
+    
+
+    table = pt.PrettyTable(['📅', '🔰', '💸'])
+    table.field_names = ["Date", "Category", "Price"]
+
+
+    try:
+        subcategory = subcategory.rstrip(subcategory[-1])
+    except:
+        pass
+
+    fetchObject = {
+        'date': date,
+        'category': category,
+        'subcategory': subcategory
+    }
+    print(fetchObject)
+    expenses = dbManager.getMonthExpensesJson(mode, chatID, fetchObject)
+
+    total_expenses = 0
+
+    # 1 Mostrar TODOS los gastos
+    # 2 Mostrar subcategorias de una categoria
+    if (not filter or not subcategory):
+
+        # Add rows to the table and calculate total expenses
+        for expense in expenses:
+            day = expense['date'].split('/')[0]
+            category = expense['category']
+            price = expense['price']
+            table.add_row([day, category, f"${price}"])
+            total_expenses += int(price)
+    else:
+            # Add rows to the table and calculate total expenses
+        for expense in expenses:
+            day = expense['date'].split('/')[0]
+            category = expense['description']
+            price = expense['price']
+            table.add_row([day, category, f"${price}"])
+            total_expenses += price
+
+    # Calculate remaining amount
+    remaining = income - total_expenses
+    # table.bottom_junction_char("-")
+    # Add a row for total expenses, income, and remaining
+    # table.add_row(['T', '-', str(1000) + ' €'])
+    table.add_row(['Expenses', '-', f"{total_expenses} €"])
+    table.add_row(['Income', '-', f"{income} €"])
+    table.add_row(['Saved', '-', f"{remaining} €"])
+
+    
+    
+
+    # Decorate the table with emojis
+    # table.set_style(9)  # Choose a fancy table style
+    table.align = "l"
+    table.padding_width = 1
+    table.format = True
+
+    # Create a string with the formatted table
+    formatted_table = f"🗓️ Expenses Table\n\n{table}"
+
+    return formatted_table
+
+
+def format_expenses_table(expenses, income):
+    # Create a table
+    table = pt.PrettyTable()
+    table.field_names = ["Date", "Category", "Price"]
+
+    # Variables for total expenses and remaining
+    total_expenses = 0
+
+    # Add rows to the table and calculate total expenses
+    for expense in expenses:
+        day = expense['date'].split('/')[0]
+        category = expense['category']
+        price = expense['price']
+        table.add_row([day, category, f"${price}"])
+        total_expenses += price
+
+    # Calculate remaining amount
+    remaining = income - total_expenses
+
+    # Add a row for total expenses, income, and remaining
+    table.add_row(['', 'Total Expenses', f"${total_expenses}"])
+    table.add_row(['', 'Income', f"${income}"])
+    table.add_row(['', 'Remaining', f"${remaining}"])
+
+    # Decorate the table with emojis
+    # table.set_style(8)  # Choose a fancy table style
+    table.align = "l"
+    table.padding_width = 1
+    table.format = True
+
+    # Create a string with the formatted table
+    formatted_table = f"🗓️ Expenses Table\n\n{table}"
+
+    return formatted_table
+
+
+
 # TODO
 def format_comment(comment, max_line_length):
     #accumulated line length
@@ -485,7 +593,7 @@ async def fetchAll(call: types.CallbackQuery, state: FSMContext):
     messageID = call.message.message_id
     
     month = call.data
-    currDate = date.today().strftime('%d/%m/%Y')
+    currDate = datetime.date.today().strftime('%d/%m/%Y')
     
     await FetchFilters.date.set()
 
@@ -493,8 +601,8 @@ async def fetchAll(call: types.CallbackQuery, state: FSMContext):
         if (month == "currMonth"):
             data['date'] = currDate
         else:
-            lastMonth = datetime.strptime(currDate, '%d/%m/%Y') - dateutil.relativedelta.relativedelta(months=1)
-            lastMonth = datetime.strftime(lastMonth, '%d/%m/%Y')
+            lastMonth = datetime.datetime.strptime(currDate, '%d/%m/%Y') - dateutil.relativedelta.relativedelta(months=1)
+            lastMonth = datetime.datetime.strftime(lastMonth, '%d/%m/%Y')
             data['date'] = lastMonth
         
     await FetchFilters.next()    
@@ -564,13 +672,13 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
         await state.finish()
 
         try:
-            monthStr = datetime.strptime(str(fetchMonth), "%d/%m/%Y")
-            monthStr = datetime.strftime(monthStr, "%B-%y")
+            monthStr = datetime.datetime.strptime(str(fetchMonth), "%d/%m/%Y")
+            monthStr = datetime.datetime.strftime(monthStr, "%B-%y")
         except:
-            monthStr = datetime.strftime(fetchMonth, "%B-%y")    
+            monthStr = datetime.datetime.strftime(fetchMonth, "%B-%y")    
         
 
-        table = createExpensesTable(chatID, fetchMonth, False, category, False)
+        table = createExpensesTable(chatID, fetchMonth, False, category, False, 1300)
 
         await bot.edit_message_text(f'<pre>GASTOS DE {monthStr.upper()}</pre> <pre>{table}</pre>',
                                         chatID,
@@ -617,8 +725,8 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
             
             await state.finish()
             
-            monthStr = datetime.strptime(fetchMonth, "%d/%m/%Y")
-            monthStr = datetime.strftime(monthStr, "%B-%y")
+            monthStr = datetime.datetime.strptime(fetchMonth, "%d/%m/%Y")
+            monthStr = datetime.datetime.strftime(monthStr, "%B-%y")
 
             table = createExpensesTable(chatID, fetchMonth, True, category, False)
 
@@ -640,9 +748,7 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
     messageID = call.message.message_id
     
     subcategory = str(call.data).split('#')[1]
-    month = date.today().strftime('%d/%m/%Y')
-
-    print(subcategory)
+    month = datetime.date.today().strftime('%d/%m/%Y')
 
 
     async with state.proxy() as data:
@@ -652,8 +758,8 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
 
         await state.finish()
 
-        monthStr = datetime.strptime(fetchMonth, "%d/%m/%Y")
-        monthStr = datetime.strftime(monthStr, "%B-%y")
+        monthStr = datetime.datetime.strptime(fetchMonth, "%d/%m/%Y")
+        monthStr = datetime.datetime.strftime(monthStr, "%B-%y")
         
 
         table = createExpensesTable(chatID, fetchMonth, True, cat, subcategory)
@@ -743,13 +849,6 @@ def paginatorFactory(elements, page, gridSize, footerCommand, callbackCommand, e
     
 
     if (not expenses): size+=1
-    
-    # dp = '/'+ footerCommand + '#{page}'
-    # print(dp)
-    # print(math.ceil(5/gridSize))
-    # print("elements:" + str(elements))
-    # print("page:" + str(page))
-    # print(paginator)
 
     paginator = InlineKeyboardPaginator(
         math.ceil(size/gridSize),
@@ -760,7 +859,6 @@ def paginatorFactory(elements, page, gridSize, footerCommand, callbackCommand, e
 
     for i in range((page-1)*gridSize, page*gridSize, gridSize):
         list = []
-        # print(i, i+gridSize)
 
         for c in range(i, i+gridSize):
             if (c >= len(elements)):
@@ -781,7 +879,6 @@ def paginatorFactory(elements, page, gridSize, footerCommand, callbackCommand, e
 
         if (expenses):
             for but in list:
-                # print(but)
                 paginator.add_before(but)
         else:
             paginator.add_before(list[0], list[1], list[2])
