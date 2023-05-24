@@ -68,12 +68,12 @@ def getMonthExpenses(mode, chatID, date, category, subcategory):
     # Assuming sheetsManager is defined elsewhere
     expenses = sheetsManager.getMonthExpenses(chatID, date, category, subcategory)
     
-    expenses = createExpenseObj(expenses)
+    # expenses = createExpenseObj(expenses)
 
-    expenses = filterExpenses(chatID, expenses, category, subcategory)
-    total = sumExpenses(expenses)
+    # expenses = filterExpenses(chatID, expenses, category, subcategory)
+    # total = sumExpenses(expenses)
 
-    return expenses, total
+    return expenses
 
 
 
@@ -82,12 +82,22 @@ def getMonthExpenses(mode, chatID, date, category, subcategory):
 # |||  JSON ACCESS  |||
 # ╚═══════════════════╝
 
+import decimal
+import json
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return float(o)
+        return super().default(o)
+
+        
 def addExpense(mode, chatID, year, month, expense):
     try:
         expensesFile = usersManager.getUserExpensesFile(mode, chatID)
     except FileNotFoundError:
-        raise Exception("Expenses file not found.")    
-    
+        raise Exception("Expenses file not found.")
+
     with open(expensesFile, 'r+') as file:
         data = json.load(file)
         for y in data['years']:
@@ -95,18 +105,18 @@ def addExpense(mode, chatID, year, month, expense):
                 for m in y['months']:
                     if m['month'] == month:
                         m['expenses'].append(expense)
-                        m['totalExpenses'] += expense['price']
-                        y['totalExpenses'] += expense['price']
+                        m['totalExpenses'] = decimal.Decimal(str(m['totalExpenses'])) + decimal.Decimal(str(expense['price']))
+                        y['totalExpenses'] = decimal.Decimal(str(y['totalExpenses'])) + decimal.Decimal(str(expense['price']))
                         break
                 else:
                     y['months'].append({
                         'month': month,
                         'expenses': [expense],
                         'income': [],
-                        'totalExpenses': expense['price'],
-                        'totalIncome': 0
+                        'totalExpenses': decimal.Decimal(str(expense['price'])),
+                        'totalIncome': decimal.Decimal('0')
                     })
-                    y['totalExpenses'] += expense['price']
+                    y['totalExpenses'] = decimal.Decimal(str(y['totalExpenses'])) + decimal.Decimal(str(expense['price']))
                 break
         else:
             data['years'].append({
@@ -115,15 +125,15 @@ def addExpense(mode, chatID, year, month, expense):
                     'month': month,
                     'expenses': [expense],
                     'income': [],
-                    'totalExpenses': expense['price'],
-                    'totalIncome': 0
+                    'totalExpenses': decimal.Decimal(str(expense['price'])),
+                    'totalIncome': decimal.Decimal('0')
                 }],
-                'totalExpenses': expense['price'],
-                'totalIncome': 0,
-                'savings': 0
+                'totalExpenses': decimal.Decimal(str(expense['price'])),
+                'totalIncome': decimal.Decimal('0'),
+                'savings': decimal.Decimal('0')
             })
         file.seek(0)
-        json.dump(data, file, indent=4)
+        json.dump(data, file, indent=4, cls=DecimalEncoder)
         file.truncate()
 
 def get_expenses(mode, chatID, year, month):
@@ -135,12 +145,13 @@ def get_expenses(mode, chatID, year, month):
     
     for y in data['years']:
         if y['year'] == year:
+            
             for m in y['months']:
                 if m['month'] == month:
-                    return m['expenses']
+                    return m['expenses'], round(float(m['totalIncome']),2), round(float(m['totalExpenses']),2)
             break
     
-    return []
+    return [], 0, 0
 
 
 

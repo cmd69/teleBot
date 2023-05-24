@@ -7,7 +7,9 @@ import usersManager
 import json
 import threading
 import asyncio
+import sheetsManager
 import datetime
+import calendar
 
 
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -166,7 +168,38 @@ class Fill(StatesGroup):
 # /Start and /Help
 @dp.message_handler(commands=['start'])
 async def welcome(message: types.Message):
-    await message.answer("Hola, bienvenido a tu gestor de portfolio!", reply_markup=ikMain)
+    chatID = message.chat.id
+    messageID = message.message_id
+    # await message.answer("Hola, bienvenido a tu gestor de portfolio!", reply_markup=ikMain)
+    r = generate_overall_report(jsonManager.getExpenses("dev", chatID))
+    await bot.edit_message_text(r,
+                                    chatID,
+                                    messageID,
+                                    parse_mode=ParseMode.HTML)
+
+    await bot.edit_message_reply_markup(chatID,
+                                        messageID,
+                                        reply_markup=ikMain)
+    
+
+
+    # dates = ['1/05/2022', '1/06/2022', '1/07/2022', '1/08/2022', '1/09/2022', '1/10/2022']
+    # dates = ['1/11/2022', '1/12/2022', '1/01/2023', '1/02/2023', '1/03/2023', '1/04/2023', '1/05/2023']
+    # dates = ['1/05/2023']
+
+    # for d in dates:
+    #     print(d)
+    #     c = {
+    #         'date': d,
+    #         'category': "Todas",
+    #         'subcategory': None
+    #     }
+    #     expense = dbManager.getMonthExpensesSheets("256900373", c)
+        
+    #     for e in expense:
+    #         # print(e)
+    #         dbManager.newExpenseJson("dev", "256900373", e)
+        
 
 
 
@@ -459,12 +492,11 @@ def createExpensesTableOG(chatID, date, filter, category, subcategory):
     return table
 
 # Plantilla para la creación de los gastos mensuales (Dia, Categoria, Descripcion)
-def createExpensesTable(chatID, date, filter, category, subcategory, income):
+def createExpensesTable(chatID, date, filter, category, subcategory):
 
-    
 
     table = pt.PrettyTable(['📅', '🔰', '💸'])
-    table.field_names = ["Date", "Category", "Price"]
+    table.field_names = ["Date 📅", "Cat. 🔰", "Price 💸"]
 
 
     try:
@@ -477,39 +509,39 @@ def createExpensesTable(chatID, date, filter, category, subcategory, income):
         'category': category,
         'subcategory': subcategory
     }
-    print(fetchObject)
-    expenses = dbManager.getMonthExpensesJson(mode, chatID, fetchObject)
-
+    
+    expenses, tIncome, tExpenses = dbManager.getMonthExpensesJson(mode, chatID, fetchObject)
     total_expenses = 0
 
     # 1 Mostrar TODOS los gastos
     # 2 Mostrar subcategorias de una categoria
     if (not filter or not subcategory):
-
+        table.field_names = ["Date 📅", "Cat. 🔰", "Price 💸"]
         # Add rows to the table and calculate total expenses
         for expense in expenses:
             day = expense['date'].split('/')[0]
             category = expense['category']
             price = expense['price']
             table.add_row([day, category, f"${price}"])
-            total_expenses += int(price)
+            total_expenses += round(float(price), 2)
     else:
-            # Add rows to the table and calculate total expenses
+        table.field_names = ["Date 📅", "Desc. 🗓️", "Price 💸"]
+        # Add rows to the table and calculate total expenses
         for expense in expenses:
             day = expense['date'].split('/')[0]
-            category = expense['description']
+            description = expense['description']
             price = expense['price']
-            table.add_row([day, category, f"${price}"])
+            table.add_row([day, description, f"${price}"])
             total_expenses += price
 
     # Calculate remaining amount
-    remaining = income - total_expenses
+    remaining = tIncome - total_expenses
     # table.bottom_junction_char("-")
     # Add a row for total expenses, income, and remaining
     # table.add_row(['T', '-', str(1000) + ' €'])
-    table.add_row(['Expenses', '-', f"{total_expenses} €"])
-    table.add_row(['Income', '-', f"{income} €"])
-    table.add_row(['Saved', '-', f"{remaining} €"])
+    table.add_row(['Expenses', '-', f"{round(total_expenses,2)} €"])
+    table.add_row(['Income', '-', f"{round(tIncome,2 )} €"])
+    table.add_row(['Saved', '-', f"{round(remaining, 2)} €"])
 
     
     
@@ -521,9 +553,72 @@ def createExpensesTable(chatID, date, filter, category, subcategory, income):
     table.format = True
 
     # Create a string with the formatted table
-    formatted_table = f"🗓️ Expenses Table\n\n{table}"
+    formatted_table = f"Income: {round(tIncome,2)} € \nExpenses: {round(total_expenses,2)} €\nSaved: {round(remaining,2)} € \n\n{table}"
 
     return formatted_table
+
+def generate_overall_report(json_data):
+    # Calculate the average income
+    total_income = 0
+    total_months = 0
+    for year in json_data['years']:
+        for month in year['months']:
+            total_income += month['totalIncome']
+            total_months += 1
+    average_income = total_income / total_months
+
+    # Calculate the average expense per month
+    total_expenses = 0
+    for year in json_data['years']:
+        total_expenses += year['totalExpenses']
+    average_expense_month = total_expenses / total_months
+
+    # Calculate the average expense per category
+    category_expenses = {}
+    for year in json_data['years']:
+        for month in year['months']:
+            for expense in month['expenses']:
+                category = expense['category']
+                amount = expense['price']
+                if category in category_expenses:
+                    category_expenses[category] += amount
+                else:
+                    category_expenses[category] = amount
+
+    category_count = len(category_expenses)
+    average_expense_category = {category: amount / total_months for category, amount in category_expenses.items()}
+
+    # Calculate the average savings
+    total_savings = 0
+    for year in json_data['years']:
+        total_savings += year['savings']
+    average_savings = total_savings / total_months
+
+    # Find the highest expense category
+    highest_expense_category = max(category_expenses, key=category_expenses.get)
+
+    # Create the PrettyTable for the report
+    report_table = pt.PrettyTable()
+    report_table.field_names = ['Field', 'Value']
+
+    # Add the fields and their values to the report table
+    report_table.add_row(['Average income', f'{average_income:.2f} €'])
+    report_table.add_row(['Average expense/month', f'{average_expense_month:.2f} €'])
+    report_table.add_row(['Average savings', f'{average_savings:.2f} €'])
+    report_table.add_row(['Highest expense category', highest_expense_category])
+
+    # Add the expense distribution to the report table
+    report_table.add_row(['Expense distribution', ''])
+    for category, amount in average_expense_category.items():
+        report_table.add_row([f'- {category}', f'{amount:.2f} €'])
+
+    # Add the savings rate to the report table
+    savings_rate = (average_savings / average_income) * 100
+    report_table.add_row(['Savings rate', f'{savings_rate:.2f} %'])
+
+    # Return the formatted report as a chat message
+    report_message = f'Overall Report:\n```\n{report_table}\n```'
+    return report_message
 
 
 def format_expenses_table(expenses, income):
@@ -678,8 +773,8 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
             monthStr = datetime.datetime.strftime(fetchMonth, "%B-%y")    
         
 
-        table = createExpensesTable(chatID, fetchMonth, False, category, False, 1300)
-
+        table = createExpensesTable(chatID, fetchMonth, False, category, False)
+        
         await bot.edit_message_text(f'<pre>GASTOS DE {monthStr.upper()}</pre> <pre>{table}</pre>',
                                         chatID,
                                         messageID,
@@ -794,12 +889,12 @@ async def fetchCustomMonth(call: types.CallbackQuery):
                                         reply_markup=calendar)
                                         
 
-@dp.callback_query_handler(DetailedTelegramCalendar.func(calendar_id=2), state=FetchFilters.date)
+@dp.callback_query_handler(MonthTelegramCalendar.func(calendar_id=2), state=FetchFilters.date)
 async def inline_kb_answer_callback_handler(call, state: FSMContext):
     
     chatID = call.message.chat.id
     messageID = call.message.message_id
-    result, key, step = DetailedTelegramCalendar(calendar_id=2).process(call.data)
+    result, key, step = MonthTelegramCalendar(calendar_id=2).process(call.data)
     
     
     if not result and key:
