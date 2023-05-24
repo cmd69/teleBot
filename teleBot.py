@@ -141,8 +141,10 @@ class Expense(StatesGroup):
     date = State()
     description = State()
 
-class NewIncome(StatesGroup):
-    amount = State()
+class Income(StatesGroup):
+    date = State()
+    price = State()
+    description = State()
 
 class FetchFilters(StatesGroup):
     date = State()
@@ -170,16 +172,16 @@ class Fill(StatesGroup):
 async def welcome(message: types.Message):
     chatID = message.chat.id
     messageID = message.message_id
-    # await message.answer("Hola, bienvenido a tu gestor de portfolio!", reply_markup=ikMain)
-    r = generate_overall_report(jsonManager.getExpenses("dev", chatID))
-    await bot.edit_message_text(r,
-                                    chatID,
-                                    messageID,
-                                    parse_mode=ParseMode.HTML)
+    await message.answer("Hola, bienvenido a tu gestor de portfolio!", reply_markup=ikMain)
+    # r = generate_overall_report(jsonManager.getExpenses("dev", chatID))
+    # await bot.edit_message_text(r,
+    #                                 chatID,
+    #                                 messageID,
+    #                                 parse_mode=ParseMode.HTML)
 
-    await bot.edit_message_reply_markup(chatID,
-                                        messageID,
-                                        reply_markup=ikMain)
+    # await bot.edit_message_reply_markup(chatID,
+    #                                     messageID,
+    #                                     reply_markup=ikMain)
     
 
 
@@ -415,6 +417,153 @@ async def get_price(message: types.Message, state: FSMContext):
 # ------------------ END EXPENSE HANDLER ---------------------- #
 
 
+
+# --------------- START INCOMMMMMMEEEE HANDLER --------------- #
+
+@dp.callback_query_handler(text = ["income"])
+async def newExpense(call: types.CallbackQuery):
+
+    chatID = call.message.chat.id
+
+    if (usersManager.userExists(mode, chatID)):
+        await Income.date.set()
+        calendar, step = DetailedTelegramCalendar(calendar_id=3).build()
+        
+        await bot.send_message(chatID,
+                     f"Select {LSTEP[step]}",
+                     reply_markup=calendar)
+        
+    else:
+        await call.message.answer("No tienes acceso a este servicio")    
+
+
+# CALENDAR FUNCTION
+@dp.callback_query_handler(DetailedTelegramCalendar.func(calendar_id=3), state=Income.date)
+async def inline_kb_answer_callback_handler(query, state: FSMContext):
+    """
+    Get Date
+    Ask Price    
+    """
+    
+    result, key, step = DetailedTelegramCalendar(calendar_id=3).process(query.data)
+
+    chatID = query.message.chat.id
+    messageID = query.message.message_id
+
+    if not result and key:
+        await bot.edit_message_text(f"Select {LSTEP[step]}",
+                                    chatID,
+                                    messageID,
+                                    reply_markup=key)
+    elif result:
+        
+        await bot.edit_message_text(f"You selected {result}",
+                                    chatID,
+                                    messageID)
+
+        result = result.strftime('%d/%m/%Y')
+
+        async with state.proxy() as proxy:
+            proxy['date'] = result
+        
+        await Income.next()
+        await query.message.answer("💰 Precio: ", reply_markup=ikNumeric)
+
+
+
+# PRICE SELECTION
+@dp.message_handler(state=Income.price)
+async def process_name(message: types.Message, state: FSMContext):
+    """
+    Get Price    
+    Ask Date
+    """
+    userInput = message.text
+    chatID = message.chat.id
+
+    # Cancelar acción
+    if (userInput[:-1] == 'Cancel'):
+        await state.finish()
+        await message.answer("❌ Cancelando...", reply_markup=ikMain)
+
+    # Comprobamos que el formato del precio sea "5.95"
+    elif (not isfloat(userInput) and not isfloat(userInput[:-1])):
+        return await message.answer("❌ Formato incorrecto. Ejemplo: '5.58'", reply_markup=ikCancel)
+
+    # Precio correcto
+    else:    
+        if (isfloat(userInput)):
+            priceFormatted = userInput
+        else:
+            priceFormatted = userInput[:-1]
+        
+
+        await Income.next()
+        await state.update_data(price=priceFormatted)
+
+
+        
+        await message.answer("🗒️ Descripcion: ", reply_markup=mkDescription)
+
+# DESCRIPTION SELECTOR
+@dp.message_handler(state=Income.description)
+async def get_price(message: types.Message, state: FSMContext):
+    """
+    Get Description
+    Add Expense 
+    """
+    chatID = message.chat.id
+    expenseDescription = message.text
+
+    if (expenseDescription[:-1] == 'Cancel'):
+        await state.finish()
+        await message.answer("❌ Cancelando...", reply_markup=ikMain)
+    else:
+        
+        if (expenseDescription == "Null" or expenseDescription == " "):
+            desc  = "-"
+        else:
+            desc = message.text
+
+        await Income.next()
+        await state.update_data(description=desc)
+
+        async with state.proxy() as data:
+            
+            income = {
+                'date': data['date'],
+                'price': round(float(data['price']),2),
+                'description': data['description']
+            }
+
+            jsonManager.newIncomeJson(mode, chatID, income)
+
+            await message.answer('Nuevo gasto procesado correctamente ✅\n', reply_markup=types.ReplyKeyboardRemove())
+            await bot.send_message(
+                chatID,
+                md.text(
+                    md.text('Fecha:', data['date']),
+                    md.text('Precio:', data['price'], '€'),
+                    md.text('Descripción:', data['description']),                   
+                    sep='\n',
+                ),
+                reply_markup=ikMain,
+                parse_mode=ParseMode.MARKDOWN,
+            )
+
+# --------------- ENDDDDD INCOMMMMMMEEEE HANDLER --------------- #
+
+
+
+
+
+
+
+
+
+
+
+
 # --------------- START FETCH --------------- #
 
 # Fetch Button
@@ -438,245 +587,6 @@ async def fetchExpenses(call: types.CallbackQuery):
         
     else:
         await call.message.answer("No tienes acceso a este servicio")  
-
-
-
-# Plantilla para la creación de los gastos mensuales (Dia, Categoria, Descripcion)
-def createExpensesTableOG(chatID, date, filter, category, subcategory):
-
-    def formatPrice(price):
-        price = price.replace("$", "")
-        price = price.replace("€", "")
-        price = price.replace(" ", "")
-        return str(price)
-
-    table = pt.PrettyTable(['📅', '🔰', '💸'])
-    table.align['📅'] = 'c'
-    table.align['🔰'] = 'l'
-    table.align['💸'] = 'c'
-
-    try:
-        subcategory = subcategory.rstrip(subcategory[-1])
-    except:
-        pass
-
-    fetchObject = {
-        'date': date,
-        'category': category,
-        'subcategory': subcategory
-    }
-    
-    monthData = dbManager.getMonthExpensesJson(mode, chatID, fetchObject)
-
-    # 1 Mostrar TODOS los gastos
-    # 2 Mostrar subcategorias de una categoria
-    
-    if (not filter or not subcategory):
-
-
-        for exp in monthData:
-            day = datetime.datetime.strptime(exp['date'], "%d/%m/%Y").day
-            
-            table.add_row([day, exp['category'], str(exp['price']) + ' €'])
-    
-    # 3 Mostrar gastos de una subcategoria
-    else:
-       
-        for exp in monthData:
-            day = datetime.datetime.strptime(exp['date'], "%d/%m/%Y").day
-            table.add_row([day, exp['description'], str(exp['price']) + ' €'])
-        
-    table.add_row(['T', '-', str(1000) + ' €'])
-
-    
-    return table
-
-# Plantilla para la creación de los gastos mensuales (Dia, Categoria, Descripcion)
-def createExpensesTable(chatID, date, filter, category, subcategory):
-
-
-    table = pt.PrettyTable(['📅', '🔰', '💸'])
-    table.field_names = ["Date 📅", "Cat. 🔰", "Price 💸"]
-
-
-    try:
-        subcategory = subcategory.rstrip(subcategory[-1])
-    except:
-        pass
-
-    fetchObject = {
-        'date': date,
-        'category': category,
-        'subcategory': subcategory
-    }
-    
-    expenses, tIncome, tExpenses = dbManager.getMonthExpensesJson(mode, chatID, fetchObject)
-    total_expenses = 0
-
-    # 1 Mostrar TODOS los gastos
-    # 2 Mostrar subcategorias de una categoria
-    if (not filter or not subcategory):
-        table.field_names = ["Date 📅", "Cat. 🔰", "Price 💸"]
-        # Add rows to the table and calculate total expenses
-        for expense in expenses:
-            day = expense['date'].split('/')[0]
-            category = expense['category']
-            price = expense['price']
-            table.add_row([day, category, f"${price}"])
-            total_expenses += round(float(price), 2)
-    else:
-        table.field_names = ["Date 📅", "Desc. 🗓️", "Price 💸"]
-        # Add rows to the table and calculate total expenses
-        for expense in expenses:
-            day = expense['date'].split('/')[0]
-            description = expense['description']
-            price = expense['price']
-            table.add_row([day, description, f"${price}"])
-            total_expenses += price
-
-    # Calculate remaining amount
-    remaining = tIncome - total_expenses
-    # table.bottom_junction_char("-")
-    # Add a row for total expenses, income, and remaining
-    # table.add_row(['T', '-', str(1000) + ' €'])
-    table.add_row(['Expenses', '-', f"{round(total_expenses,2)} €"])
-    table.add_row(['Income', '-', f"{round(tIncome,2 )} €"])
-    table.add_row(['Saved', '-', f"{round(remaining, 2)} €"])
-
-    
-    
-
-    # Decorate the table with emojis
-    # table.set_style(9)  # Choose a fancy table style
-    table.align = "l"
-    table.padding_width = 1
-    table.format = True
-
-    # Create a string with the formatted table
-    formatted_table = f"Income: {round(tIncome,2)} € \nExpenses: {round(total_expenses,2)} €\nSaved: {round(remaining,2)} € \n\n{table}"
-
-    return formatted_table
-
-def generate_overall_report(json_data):
-    # Calculate the average income
-    total_income = 0
-    total_months = 0
-    for year in json_data['years']:
-        for month in year['months']:
-            total_income += month['totalIncome']
-            total_months += 1
-    average_income = total_income / total_months
-
-    # Calculate the average expense per month
-    total_expenses = 0
-    for year in json_data['years']:
-        total_expenses += year['totalExpenses']
-    average_expense_month = total_expenses / total_months
-
-    # Calculate the average expense per category
-    category_expenses = {}
-    for year in json_data['years']:
-        for month in year['months']:
-            for expense in month['expenses']:
-                category = expense['category']
-                amount = expense['price']
-                if category in category_expenses:
-                    category_expenses[category] += amount
-                else:
-                    category_expenses[category] = amount
-
-    category_count = len(category_expenses)
-    average_expense_category = {category: amount / total_months for category, amount in category_expenses.items()}
-
-    # Calculate the average savings
-    total_savings = 0
-    for year in json_data['years']:
-        total_savings += year['savings']
-    average_savings = total_savings / total_months
-
-    # Find the highest expense category
-    highest_expense_category = max(category_expenses, key=category_expenses.get)
-
-    # Create the PrettyTable for the report
-    report_table = pt.PrettyTable()
-    report_table.field_names = ['Field', 'Value']
-
-    # Add the fields and their values to the report table
-    report_table.add_row(['Average income', f'{average_income:.2f} €'])
-    report_table.add_row(['Average expense/month', f'{average_expense_month:.2f} €'])
-    report_table.add_row(['Average savings', f'{average_savings:.2f} €'])
-    report_table.add_row(['Highest expense category', highest_expense_category])
-
-    # Add the expense distribution to the report table
-    report_table.add_row(['Expense distribution', ''])
-    for category, amount in average_expense_category.items():
-        report_table.add_row([f'- {category}', f'{amount:.2f} €'])
-
-    # Add the savings rate to the report table
-    savings_rate = (average_savings / average_income) * 100
-    report_table.add_row(['Savings rate', f'{savings_rate:.2f} %'])
-
-    # Return the formatted report as a chat message
-    report_message = f'Overall Report:\n```\n{report_table}\n```'
-    return report_message
-
-
-def format_expenses_table(expenses, income):
-    # Create a table
-    table = pt.PrettyTable()
-    table.field_names = ["Date", "Category", "Price"]
-
-    # Variables for total expenses and remaining
-    total_expenses = 0
-
-    # Add rows to the table and calculate total expenses
-    for expense in expenses:
-        day = expense['date'].split('/')[0]
-        category = expense['category']
-        price = expense['price']
-        table.add_row([day, category, f"${price}"])
-        total_expenses += price
-
-    # Calculate remaining amount
-    remaining = income - total_expenses
-
-    # Add a row for total expenses, income, and remaining
-    table.add_row(['', 'Total Expenses', f"${total_expenses}"])
-    table.add_row(['', 'Income', f"${income}"])
-    table.add_row(['', 'Remaining', f"${remaining}"])
-
-    # Decorate the table with emojis
-    # table.set_style(8)  # Choose a fancy table style
-    table.align = "l"
-    table.padding_width = 1
-    table.format = True
-
-    # Create a string with the formatted table
-    formatted_table = f"🗓️ Expenses Table\n\n{table}"
-
-    return formatted_table
-
-
-
-# TODO
-def format_comment(comment, max_line_length):
-    #accumulated line length
-    ACC_length = 0
-    words = comment.split(" ")
-    formatted_comment = ""
-    for word in words:
-        #if ACC_length + len(word) and a space is <= max_line_length 
-        if ACC_length + (len(word) + 1) <= max_line_length:
-            #append the word and a space
-            formatted_comment = formatted_comment + word + " "
-            #length = length + length of word + length of space
-            ACC_length = ACC_length + len(word) + 1
-        else:
-            #append a line break, then the word and a space
-            formatted_comment = formatted_comment + "\n" + word + " "
-            #reset counter of length to the length of a word and a space
-            ACC_length = len(word) + 1
-    return formatted_comment
 
 
 # Handler para acceso rapido a mes actual y pasado. Creación de teclado de filtros.
@@ -935,6 +845,151 @@ async def inline_kb_answer_callback_handler(call, state: FSMContext):
 
 
 # ------- AUX FUNCS -----  #
+
+
+# Plantilla para la creación de los gastos mensuales (Dia, Categoria, Descripcion)
+def createExpensesTable(chatID, date, filter, category, subcategory):
+
+
+    table = pt.PrettyTable(['📅', '🔰', '💸'])
+    table.field_names = ["Date 📅", "Cat. 🔰", "Price 💸"]
+
+
+    try:
+        subcategory = subcategory.rstrip(subcategory[-1])
+    except:
+        pass
+
+    fetchObject = {
+        'date': date,
+        'category': category,
+        'subcategory': subcategory
+    }
+    
+    expenses, tIncome, tExpenses = dbManager.getMonthExpensesJson(mode, chatID, fetchObject)
+    total_expenses = 0
+
+    # 1 Mostrar TODOS los gastos
+    # 2 Mostrar subcategorias de una categoria
+    if (not filter or not subcategory):
+        table.field_names = ["Date 📅", "Cat. 🔰", "Price 💸"]
+        # Add rows to the table and calculate total expenses
+        for expense in expenses:
+            day = expense['date'].split('/')[0]
+            category = expense['category']
+            price = expense['price']
+            table.add_row([day, category, f"${price}"])
+            total_expenses += round(float(price), 2)
+    else:
+        table.field_names = ["Date 📅", "Desc. 🗓️", "Price 💸"]
+        # Add rows to the table and calculate total expenses
+        for expense in expenses:
+            day = expense['date'].split('/')[0]
+            description = expense['description']
+            price = expense['price']
+            table.add_row([day, description, f"${price}"])
+            total_expenses += price
+
+    # Calculate remaining amount
+    remaining = tIncome - total_expenses
+    # table.bottom_junction_char("-")
+    # Add a row for total expenses, income, and remaining
+    # table.add_row(['T', '-', str(1000) + ' €'])
+    table.add_row(['Expenses', '-', f"{round(total_expenses,2)} €"])
+    table.add_row(['Income', '-', f"{round(tIncome,2 )} €"])
+    table.add_row(['Saved', '-', f"{round(remaining, 2)} €"])
+
+    
+    
+
+    # Decorate the table with emojis
+    # table.set_style(9)  # Choose a fancy table style
+    table.align = "l"
+    table.padding_width = 1
+    table.format = True
+
+    # Create a string with the formatted table
+    formatted_table = f"Income: {round(tIncome,2)} € \nExpenses: {round(total_expenses,2)} €\nSaved: {round(remaining,2)} € \n\n{table}"
+
+    return formatted_table
+
+def generate_overall_report(json_data):
+    # Calculate the average income
+    total_income = 0
+    total_months = 0
+    for year in json_data['years']:
+        for month in year['months']:
+            total_income += month['totalIncome']
+            total_months += 1
+    average_income = total_income / total_months
+
+    # Calculate the average expense per month
+    total_expenses = 0
+    for year in json_data['years']:
+        total_expenses += year['totalExpenses']
+    average_expense_month = total_expenses / total_months
+
+    # Calculate the average expense per category
+    category_expenses = {}
+    for year in json_data['years']:
+        for month in year['months']:
+            for expense in month['expenses']:
+                category = expense['category']
+                amount = expense['price']
+                if category in category_expenses:
+                    category_expenses[category] += amount
+                else:
+                    category_expenses[category] = amount
+
+    category_count = len(category_expenses)
+    average_expense_category = {category: amount / total_months for category, amount in category_expenses.items()}
+
+    # Calculate the average savings
+    total_savings = 0
+    for year in json_data['years']:
+        total_savings += year['savings']
+    average_savings = total_savings / total_months
+
+    # Find the highest expense category
+    highest_expense_category = max(category_expenses, key=category_expenses.get)
+
+    # Create the PrettyTable for the report
+    report_table = pt.PrettyTable()
+    report_table.field_names = ['Field', 'Value']
+
+    # Add the fields and their values to the report table
+    report_table.add_row(['Average income', f'{average_income:.2f} €'])
+    report_table.add_row(['Average expense/month', f'{average_expense_month:.2f} €'])
+    report_table.add_row(['Average savings', f'{average_savings:.2f} €'])
+    report_table.add_row(['Highest expense category', highest_expense_category])
+
+    # Add the expense distribution to the report table
+    report_table.add_row(['Expense distribution', ''])
+    for category, amount in average_expense_category.items():
+        report_table.add_row([f'- {category}', f'{amount:.2f} €'])
+
+    # Add the savings rate to the report table
+    savings_rate = (average_savings / average_income) * 100
+    report_table.add_row(['Savings rate', f'{savings_rate:.2f} %'])
+
+    # Return the formatted report as a chat message
+    report_message = f'Overall Report:\n```\n{report_table}\n```'
+    return report_message
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Create any paginator
 def paginatorFactory(elements, page, gridSize, footerCommand, callbackCommand, expenses):

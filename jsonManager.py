@@ -210,9 +210,78 @@ def newExpense(chatID, date, category, subcategory, price, description):
 
     return False
 
+
+def newIncomeJson(mode, chatID, income):
+
+    file = usersManager.getUserExpensesFile(mode, chatID)
+
+    with open(file, 'r+') as file:
+        data = json.load(file)
+        
+        # Find the year and month in the income object
+        date_str = income['date']
+        day, month, year = map(int, date_str.split('/'))
+        
+        # Find the year index in the JSON structure
+        year_index = None
+        for i, year_data in enumerate(data['years']):
+            if year_data['year'] == year:
+                year_index = i
+                break
+        
+        # If the year doesn't exist, add it to the JSON structure
+        if year_index is None:
+            year_data = {
+                'year': year,
+                'months': [],
+                'totalExpenses': 0,
+                'totalIncome': 0,
+                'savings': 0
+            }
+            data['years'].append(year_data)
+            year_index = len(data['years']) - 1
+        
+        # Find the month index in the year's months list
+        month_index = None
+        for i, month_data in enumerate(data['years'][year_index]['months']):
+            if month_data['month'] == month:
+                month_index = i
+                break
+        
+        # If the month doesn't exist, add it to the year's months list
+        if month_index is None:
+            month_data = {
+                'month': month,
+                'expenses': [],
+                'income': [],
+                'totalExpenses': 0,
+                'totalIncome': 0
+            }
+            data['years'][year_index]['months'].append(month_data)
+            month_index = len(data['years'][year_index]['months']) - 1
+        
+        # Add the new income to the month's income list
+        data['years'][year_index]['months'][month_index]['income'].append(income)
+        
+        # Update the total income for the month, year, and overall
+        data['years'][year_index]['months'][month_index]['totalIncome'] += income['price']
+        data['years'][year_index]['totalIncome'] += income['price']
+        
+        # Move the file pointer to the beginning and write the updated JSON
+        file.seek(0)
+        json.dump(data, file, indent=4)
+        file.truncate()
+    
+    return True
+
+
+
+
 # ╔═══════════════════╗
 # |||  AUX METHODS  |||
 # ╚═══════════════════╝
+
+
 
 def saveFile(chatID, data):
     try:
