@@ -7,6 +7,8 @@ from googleapiclient.errors import HttpError
 from google.oauth2 import service_account
 from dotenv import load_dotenv
 
+import json
+
 load_dotenv()
 
 portfolios = {}
@@ -32,7 +34,8 @@ def loadPortfolio(chatID):
 
         if (chatID not in portfolios):
                 creds = service_account.Credentials.from_service_account_file(
-                    usersManager.getUserCreds(chatID), scopes=os.environ.get('SCOPES'))
+                    getUserCreds(chatID), scopes=[os.environ.get('SCOPES')]
+                )
 
                 service = build('sheets', 'v4', credentials = creds)
 
@@ -43,7 +46,10 @@ def loadPortfolio(chatID):
         return portfolios[chatID]
 
 
-
+def getUserCreds(chatID):
+        with open('database/dev/users.json') as f:
+                data = json.load(f)
+        return data[str(chatID)]["credFile"]
 
 def dateToDDMM(date):
         date2 = datetime.datetime.strptime(date, "%m/%d/%Y")
@@ -124,10 +130,10 @@ def deleteExpense(chatID, date, index):
                 print(str(error))
         
 
-def getMonthExpenses(chatID, date, category, subcategory):
+def getMonthExpenses(chatID, date):
         portfolio = loadPortfolio(chatID)
-        credentials, sheetsFile = usersManager.getUserData(chatID)
-        
+        credentials, sheetsFile = usersManager.getUserData("dev", chatID)
+
         try:
                 dateClass = datetime.datetime.strptime(date, "%d/%m/%Y")
         except:
@@ -136,11 +142,10 @@ def getMonthExpenses(chatID, date, category, subcategory):
         
         sheet = months[str(dateClass.month)] + str(dateClass.year)[-2:] + "!B10:F"
         
-
         result = portfolio.values().get(spreadsheetId=sheetsFile,
                                 valueRenderOption="UNFORMATTED_VALUE",
                                 range=sheet).execute()
         
         expenses = result.get('values', [])
-
+        
         return expenses
