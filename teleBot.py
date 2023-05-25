@@ -87,19 +87,19 @@ benz_buttons = {
     "back": "Atras ↩️"
 }
 
-fetch_data_buttons = {
-    "general": "General",
-    "currMonth": "Este Mes",
-    "lastMonth": "Mes Pasado",
-    "customMonth": "Otro Mes",
-    "back": "Atras ↩️"
-}
-
 portfolio_buttons = {
     "income": "Ingreso",
     "expense": "Gasto",
     "fetch": "Consultar",
     "deleteExpense": "Eliminar Gasto",
+    "back": "Atras ↩️"
+}
+
+fetch_data_buttons = {
+    "general": "General",
+    "currMonth": "Este Mes",
+    "lastMonth": "Mes Pasado",
+    "customMonth": "Otro Mes",
     "back": "Atras ↩️"
 }
 
@@ -166,35 +166,6 @@ async def welcome(message: types.Message):
     chatID = message.chat.id
     messageID = message.message_id
     await message.answer("Hola, bienvenido a tu gestor de portfolio!", reply_markup=ikMain)
-    # r = generate_overall_report(jsonManager.getExpenses("dev", chatID))
-    # await bot.edit_message_text(r,
-    #                                 chatID,
-    #                                 messageID,
-    #                                 parse_mode=ParseMode.HTML)
-
-    # await bot.edit_message_reply_markup(chatID,
-    #                                     messageID,
-    #                                     reply_markup=ikMain)
-    
-
-
-    # dates = ['1/05/2022', '1/06/2022', '1/07/2022', '1/08/2022', '1/09/2022', '1/10/2022']
-    # dates = ['1/11/2022', '1/12/2022', '1/01/2023', '1/02/2023', '1/03/2023', '1/04/2023', '1/05/2023']
-    # dates = ['1/05/2023']
-
-    # for d in dates:
-    #     print(d)
-    #     c = {
-    #         'date': d,
-    #         'category': "Todas",
-    #         'subcategory': None
-    #     }
-    #     expense = dbManager.getMonthExpensesSheets("256900373", c)
-        
-    #     for e in expense:
-    #         # print(e)
-    #         dbManager.newExpenseJson("dev", "256900373", e)
-        
 
 
 
@@ -408,6 +379,42 @@ async def get_price(message: types.Message, state: FSMContext):
             )
 
 # ------------------ END EXPENSE HANDLER ---------------------- #
+
+
+
+
+@dp.callback_query_handler(text = ["general"])
+async def newExpense(call: types.CallbackQuery):
+
+    chatID = call.message.chat.id
+    messageID = call.message.message_id
+    if (usersManager.userExists(mode, chatID)):
+
+        report = generate_overall_report(jsonManager.getExpenses("dev", chatID))
+        # await call.message.edit_reply_markup(f'{report}', reply_markup=ikPortfolio)
+        # await call.message.edit_reply_markup(f'{report}', reply_markup=ikPortfolio)
+        
+        await bot.edit_message_text(f'<pre>GASTOS GENERALES</pre> <pre>{report}</pre>',
+                                        chatID,
+                                        messageID,
+                                        parse_mode=ParseMode.HTML)
+
+        await bot.edit_message_reply_markup(chatID,
+                                            messageID,
+                                            reply_markup=ikMain)
+    else:
+        await call.message.answer("No tienes acceso a este servicio")   
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -911,77 +918,140 @@ def createExpensesTable(chatID, date, filter, category, subcategory):
 
     return formatted_table
 
-def generate_overall_report(json_data):
-    # Calculate the average income
+def generate_overall_report2(json_data):
+    recap_message = "💰 Budget Recap 💰\n\n"
+    
+    years = json_data["years"]
     total_income = 0
-    total_months = 0
-    for year in json_data['years']:
-        for month in year['months']:
-            total_income += month['totalIncome']
-            total_months += 1
-    average_income = total_income / total_months
-
-    # Calculate the average expense per month
     total_expenses = 0
-    for year in json_data['years']:
-        total_expenses += year['totalExpenses']
-    average_expense_month = total_expenses / total_months
+    total_saved = 0
+    total_income_count = 0
+    total_expenses_count = 0
+    
+    for year_data in years:
+        months = year_data["months"]
+        
+        for month_data in months:
+            expenses = month_data["expenses"]
+            income = month_data["income"]
+            
+            if income:
+                total_income += sum(entry['price'] for entry in income)
+                total_income_count += len(income)
+            
+            if expenses:
+                total_expenses += sum(entry['price'] for entry in expenses)
+                total_expenses_count += len(expenses)
+    
+    # Calculate average income
+    if total_income_count > 0:
+        average_income = total_income / total_income_count
+        recap_message += f"💵 Avg. Income:\t €{average_income:.0f}\n"
+    
+    # Calculate average expenses
+    if total_expenses_count > 0:
+        average_expenses = total_expenses / total_expenses_count
+        recap_message += f"💸 Avg. Expenses:\t €{average_expenses:.0f} ({(average_expenses / total_income) * 100:.0f}%)\n"
+    
+    # Calculate average saved
+    average_saved = average_income - average_expenses
+    recap_message += f"💰 Avg. Saved:\t €{average_saved:.0f} ({(average_saved / total_income) * 100:.0f}%)\n\n"
+    
+    # Calculate average category expenses
+    all_expenses = [entry for year_data in years for month_data in year_data["months"] for entry in month_data["expenses"]]
+    categories = {}
+    total_expenses = 0
+    
+    for expense in all_expenses:
+        category = expense["category"]
+        price = expense["price"]
+        total_expenses += price
+        
+        if category in categories:
+            categories[category]["total"] += price
+            categories[category]["count"] += 1
+        else:
+            categories[category] = {"total": price, "count": 1}
+    
+    recap_message += "📊 Category Averages\n\n"
+    
+    for category, data in categories.items():
+        average_expense = data["total"] / data["count"]
+        percentage_of_expenses = (data["total"] / total_expenses) * 100
+        recap_message += f"{category}:\t €{average_expense:.0f}\t ({percentage_of_expenses:.0f}%)\n"
+    
+    return recap_message
 
-    # Calculate the average expense per category
-    category_expenses = {}
-    for year in json_data['years']:
-        for month in year['months']:
-            for expense in month['expenses']:
-                category = expense['category']
-                amount = expense['price']
-                if category in category_expenses:
-                    category_expenses[category] += amount
-                else:
-                    category_expenses[category] = amount
-
-    category_count = len(category_expenses)
-    average_expense_category = {category: amount / total_months for category, amount in category_expenses.items()}
-
-    # Calculate the average savings
-    total_savings = 0
-    for year in json_data['years']:
-        total_savings += year['savings']
-    average_savings = total_savings / total_months
-
-    # Find the highest expense category
-    highest_expense_category = max(category_expenses, key=category_expenses.get)
-
-    # Create the PrettyTable for the report
-    report_table = pt.PrettyTable()
-    report_table.field_names = ['Field', 'Value']
-
-    # Add the fields and their values to the report table
-    report_table.add_row(['Average income', f'{average_income:.2f} €'])
-    report_table.add_row(['Average expense/month', f'{average_expense_month:.2f} €'])
-    report_table.add_row(['Average savings', f'{average_savings:.2f} €'])
-    report_table.add_row(['Highest expense category', highest_expense_category])
-
-    # Add the expense distribution to the report table
-    report_table.add_row(['Expense distribution', ''])
-    for category, amount in average_expense_category.items():
-        report_table.add_row([f'- {category}', f'{amount:.2f} €'])
-
-    # Add the savings rate to the report table
-    savings_rate = (average_savings / average_income) * 100
-    report_table.add_row(['Savings rate', f'{savings_rate:.2f} %'])
-
-    # Return the formatted report as a chat message
-    report_message = f'Overall Report:\n```\n{report_table}\n```'
-    return report_message
-
-
-
-
-
-
-
-
-
+def generate_overall_report(json_data):
+    recap_message = "💰 Budget Recap 💰\n\n"
+    
+    years = json_data["years"]
+    total_income = 0
+    total_expenses = 0
+    total_saved = 0
+    total_income_count = 0
+    total_expenses_count = 0
+    
+    for year_data in years:
+        months = year_data["months"]
+        
+        for month_data in months:
+            expenses = month_data["expenses"]
+            income = month_data["income"]
+            
+            if income:
+                total_income += sum(entry['price'] for entry in income)
+                total_income_count += len(income)
+            
+            if expenses:
+                total_expenses += sum(entry['price'] for entry in expenses)
+                total_expenses_count += len(expenses)
+    
+    # Calculate average income
+    if total_income_count > 0:
+        average_income = total_income / total_income_count
+        recap_message += f"💵 Avg. Income: €{average_income:.2f}\n"
+    
+    # Calculate average expenses
+    if total_expenses_count > 0:
+        average_expenses = total_expenses / total_expenses_count
+        percentage_of_expenses = (average_expenses / total_income) * 100
+        recap_message += f"💸 Avg. Expenses: €{average_expenses:.2f} ({percentage_of_expenses:.2f}%)\n"
+    
+    # Calculate average saved
+    average_saved = average_income - average_expenses
+    recap_message += f"💰 Avg. Saved: €{average_saved:.2f} ({(average_saved / total_income) * 100:.2f}%)\n\n"
+    
+    # Calculate average category expenses
+    all_expenses = [entry for year_data in years for month_data in year_data["months"] for entry in month_data["expenses"]]
+    categories = {}
+    total_expenses = 0
+    
+    for expense in all_expenses:
+        category = expense["category"]
+        price = expense["price"]
+        total_expenses += price
+        
+        if category in categories:
+            categories[category]["total"] += price
+            categories[category]["count"] += 1
+        else:
+            categories[category] = {"total": price, "count": 1}
+    
+    recap_message += "📊 Category Averages\n"
+    
+    # Create the pretty table
+    table = pt.PrettyTable()
+    table.field_names = ["Category", "Avg (€)", "(%)"]
+    
+    for category, data in categories.items():
+        average_expense = data["total"] / data["count"]
+        percentage_of_expenses = (data["total"] / total_expenses) * 100
+        table.add_row([category, f"€{average_expense:.2f}", f"{percentage_of_expenses:.2f}"])
+    
+    recap_message += str(table)
+    
+    return recap_message
 
 
 
