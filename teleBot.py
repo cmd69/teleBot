@@ -152,13 +152,6 @@ class FetchFilters(StatesGroup):
     category = State()
     subcategory = State()
 
-class ConsultMonth1(StatesGroup):
-    date = State()
-
-class ConsultMonth2(StatesGroup):
-    date = State()
-    expense = State()
-
 class Fill(StatesGroup):
     price = State()
     diesel = State()
@@ -424,15 +417,20 @@ async def get_price(message: types.Message, state: FSMContext):
 async def newExpense(call: types.CallbackQuery):
 
     chatID = call.message.chat.id
-
+    messageID = call.message.message_id
     if (usersManager.userExists(mode, chatID)):
         await Income.date.set()
         calendar, step = DetailedTelegramCalendar(calendar_id=3).build()
         
-        await bot.send_message(chatID,
-                     f"Select {LSTEP[step]}",
-                     reply_markup=calendar)
-        
+
+        await bot.edit_message_text(f"Select {LSTEP[step]}",
+                                chatID,
+                                messageID)
+
+        await bot.edit_message_reply_markup(chatID,
+                                            messageID,
+                                            reply_markup=calendar)
+
     else:
         await call.message.answer("No tienes acceso a este servicio")    
 
@@ -536,7 +534,7 @@ async def get_price(message: types.Message, state: FSMContext):
                 'description': data['description']
             }
 
-            jsonManager.newIncomeJson(mode, chatID, income)
+            dbManager.newIncomeJson(mode, chatID, income)
 
             await message.answer('Nuevo gasto procesado correctamente ✅\n', reply_markup=types.ReplyKeyboardRemove())
             await bot.send_message(
