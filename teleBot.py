@@ -159,6 +159,12 @@ class Fill(StatesGroup):
 
 
 
+# /Start and /Help
+@dp.message_handler(commands=['s'])
+async def welcome(message: types.Message):
+    chatID = message.chat.id
+    messageID = message.message_id
+    c = dbManager.migrateSheetsToJson("dev", chatID, '22/04/2023', '22/05/2023')
 
 # /Start and /Help
 @dp.message_handler(commands=['start'])

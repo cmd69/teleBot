@@ -2,6 +2,58 @@ import datetime
 import json
 import jsonManager
 import sheetsManager
+import usersManager
+
+
+
+
+# ╔═══════════════════╗
+# |||    GENERAL    |||
+# ╚═══════════════════╝
+
+
+def newExpense(mode, chatID, expense):
+    if(usersManager.userJsonON(mode, chatID)):
+        newExpenseJson(mode, chatID, expense)
+    if(usersManager.userSheetsON(mode, chatID)):
+        newExpenseSheets(mode, chatID, expense)
+
+def deleteExpense(mode, chatID, expense):
+    pass
+
+def newIncome(mode, chatID, income):
+    pass
+
+def deleteIncome(mode, chatID, expense):
+    pass
+
+def getMonthExpenses(mode, chatID, consult):
+    pass
+
+def getAllExpenses(mode, chatID, consult):
+    pass
+
+
+from dateutil.relativedelta import relativedelta
+
+def migrateSheetsToJson(mode, chatID, start_date=None, end_date=None):
+    
+    current_date = datetime.datetime.strptime(start_date, "%d/%m/%Y")
+    end_date = datetime.datetime.strptime(end_date, "%d/%m/%Y")
+    
+    while current_date <= end_date:
+        c = getMonthExpensesSheets(chatID, current_date.strftime("%d/%m/%Y"), "Todas", None)
+        for exp in c:
+            newExpenseJson(mode, chatID, exp)
+        current_date += relativedelta(months=1)
+
+
+
+
+# ╔═══════════════════╗
+# |||     JSON      |||
+# ╚═══════════════════╝
+
 
 def newExpenseJson(mode, chatID, expense):
     # Extract the date from the object
@@ -16,7 +68,6 @@ def newExpenseJson(mode, chatID, expense):
     year = int(year)
 
     return jsonManager.addExpense(mode, chatID, year, month, expense)
-
 
 def newIncomeJson(mode, chatID, income):
     return jsonManager.newIncomeJson(mode, chatID, income)
@@ -47,26 +98,24 @@ def getMonthExpensesJson(mode, chatID, consult):
 
     filtered_expenses = filterExpenses(expenses, category, subcategory)
     return filtered_expenses, tIncome, tExpenses
-    
+
+
+# ╔═══════════════════╗
+# |||     SHEETS    |||
+# ╚═══════════════════╝
 
 def newExpenseSheets():
     pass
 
+def newIncomeSheets(mode, chatID, income):
+    pass
 
+def getAllExpensesSheets(mode, chatID, consult):
+    pass
 
-def getMonthExpensesSheets(chatID, consult):
+def getMonthExpensesSheets(chatID, date, category, subcategory):
     
-    date_str = consult.get('date')
-    category = consult.get('category')
-    subcategory = consult.get('subcategory')
-
-    # Split the date string into day, month, and year
-    day, month, year = date_str.split('/')
-    # Convert month and year to integers
-    month = int(month)
-    year = int(year)
-    
-    expenses = sheetsManager.getMonthExpenses(chatID, date_str)
+    expenses = sheetsManager.getMonthExpenses(chatID, date)
     
     expenses_clean = sheetsToJson(expenses)
     filtered_expenses = filterExpenses(expenses_clean, category, subcategory)

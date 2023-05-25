@@ -10,6 +10,36 @@ def load_json(file_path):
         data = json.load(f)
     return data
 
+def userJsonON(mode, chatID):
+    
+    if mode == 'dev':
+        json_file = 'database/dev/users.json'
+    else:
+        json_file = 'database/prod/users.json'
+
+    try:
+        data = load_json(json_file)
+        return data[str(chatID)]["jsonDatabase"]
+    except (FileNotFoundError, KeyError) as e:
+        # Handle the error as per your application's requirements
+        # For example, you can log the error or raise a custom exception
+        raise RuntimeError(f"Failed to retrieve user data for chatID {chatID}: {e}")
+
+        
+def userSheetsON(mode, chatID):
+    if mode == 'dev':
+        json_file = 'database/dev/users.json'
+    else:
+        json_file = 'database/prod/users.json'
+
+    try:
+        data = load_json(json_file)
+        return data[str(chatID)]["sheetsDatabase"]
+    except (FileNotFoundError, KeyError) as e:
+        # Handle the error as per your application's requirements
+        # For example, you can log the error or raise a custom exception
+        raise RuntimeError(f"Failed to retrieve user data for chatID {chatID}: {e}")
+
 def getUserData(mode, chatID):
     if mode == 'dev':
         json_file = 'database/dev/users.json'
