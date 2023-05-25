@@ -18,6 +18,9 @@ def newExpenseJson(mode, chatID, expense):
     return jsonManager.addExpense(mode, chatID, year, month, expense)
 
 
+def newIncomeJson(mode, chatID, income):
+    return jsonManager.newIncomeJson(mode, chatID, income)
+
 def getAllExpensesJson(mode, chatID):
     return jsonManager.getExpenses(mode, chatID)
     
