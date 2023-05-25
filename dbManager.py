@@ -3,6 +3,7 @@ import json
 import jsonManager
 import sheetsManager
 import usersManager
+from dateutil.relativedelta import relativedelta
 
 
 
@@ -19,10 +20,16 @@ def newExpense(mode, chatID, expense):
         newExpenseSheets(mode, chatID, expense)
 
 def deleteExpense(mode, chatID, expense):
-    pass
+    if(usersManager.userJsonON(mode, chatID)):
+        newIncomeJson(mode, chatID, expense)
+    if(usersManager.userSheetsON(mode, chatID)):
+        newIncomeSheets(mode, chatID, expense)
 
 def newIncome(mode, chatID, income):
-    pass
+    if(usersManager.userJsonON(mode, chatID)):
+        newIncomeJson(mode, chatID, income)
+    if(usersManager.userSheetsON(mode, chatID)):
+        newIncomeSheets(mode, chatID, income)
 
 def deleteIncome(mode, chatID, expense):
     pass
@@ -33,8 +40,6 @@ def getMonthExpenses(mode, chatID, consult):
 def getAllExpenses(mode, chatID, consult):
     pass
 
-
-from dateutil.relativedelta import relativedelta
 
 def migrateSheetsToJson(mode, chatID, start_date=None, end_date=None):
     
@@ -104,18 +109,17 @@ def getMonthExpensesJson(mode, chatID, consult):
 # |||     SHEETS    |||
 # ╚═══════════════════╝
 
-def newExpenseSheets():
-    pass
+def newExpenseSheets(mode, chatID, expense):
+    # Add the expense to Google Sheets
+    return sheetsManager.newExpense(mode, chatID, expense)
 
 def newIncomeSheets(mode, chatID, income):
-    pass
+    return sheetsManager.newIncome(mode, chatID, income)
 
-def getAllExpensesSheets(mode, chatID, consult):
-    pass
 
-def getMonthExpensesSheets(chatID, date, category, subcategory):
+def getMonthExpensesSheets(mode, chatID, date, category, subcategory):
     
-    expenses = sheetsManager.getMonthExpenses(chatID, date)
+    expenses = sheetsManager.getMonthExpenses(mode, chatID, date)
     
     expenses_clean = sheetsToJson(expenses)
     filtered_expenses = filterExpenses(expenses_clean, category, subcategory)

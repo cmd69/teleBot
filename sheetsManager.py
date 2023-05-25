@@ -64,50 +64,89 @@ def dateToMMDD(date):
         return date
 
 
-def newExpense(chatID, expenses):
+def newExpense(mode, chatID, exp):
         
         portfolio = loadPortfolio(chatID)
-        credentials, sheetsFile = usersManager.getUserData(chatID)
-        dateFormat = usersManager.getUserDateFormat(chatID)
+        credentials, sheetsFile = usersManager.getUserData(mode, chatID)
+        dateFormat = usersManager.getUserDateFormat(mode, chatID)
         
-        for exp in expenses:
+        
 
-                date = exp['date']
-                category = exp['category']
-                if (exp['subcategory'] != None):
-                        subcategory = exp['subcategory']
-                else:
-                        subcategory = exp['category']
-                price = exp['price']
-                description = exp['description']
-
-
-                # Sheet corresponding to the months expense
-                dateClass = datetime.datetime.strptime(date, "%d/%m/%Y")
-                sheet = months[str(dateClass.month)] + str(dateClass.year)[-2:] + "!B9:F"
-                
-                
-                # Adjust date depending on shpreadsheet's date preferences
-                if (dateFormat == "mmddyy"):
-                        date2 = datetime.datetime.strptime(date, "%d/%m/%Y")
-                        date = str(date2.month) + '/' + str(date2.day) + '/' + str(date2.year)
-
-                # Expense array creation
-                expense = [[date, category, subcategory, price, description]]        
+        date = exp['date']
+        category = exp['category']
+        if (exp['subcategory'] != None):
+                subcategory = exp['subcategory']
+        else:
+                subcategory = exp['category']
+        price = exp['price']
+        description = exp['description']
 
 
-                try:
-                        request = portfolio.values().append(
-                                spreadsheetId=sheetsFile,
-                                range = sheet,
-                                valueInputOption="USER_ENTERED",
-                                # insertDataOption="INSERT_ROWS",
-                                body={"values":expense}).execute()
-                        print('Nueva transacción: ' + usersManager.getUserName(chatID) + " --> " + str(expense))
-                        # return True
+        # Sheet corresponding to the months expense
+        dateClass = datetime.datetime.strptime(date, "%d/%m/%Y")
+        sheet = months[str(dateClass.month)] + str(dateClass.year)[-2:] + "!B9:F"
+        
+        
+        # Adjust date depending on shpreadsheet's date preferences
+        if (dateFormat == "mmddyy"):
+                date2 = datetime.datetime.strptime(date, "%d/%m/%Y")
+                date = str(date2.month) + '/' + str(date2.day) + '/' + str(date2.year)
 
-                except HttpError as error:
-                        print(str(error))
+        # Expense array creation
+        expense = [[date, category, subcategory, price, description]]        
+
+
+        try:
+                request = portfolio.values().append(
+                        spreadsheetId=sheetsFile,
+                        range = sheet,
+                        valueInputOption="USER_ENTERED",
+                        # insertDataOption="INSERT_ROWS",
+                        body={"values":expense}).execute()
+                print('Nueva transacción: ' + usersManager.getUserName(chatID) + " --> " + str(expense))
+                # return True
+
+        except HttpError as error:
+                print(str(error))
+
+def newIncome(mode, chatID, income):
+        
+        portfolio = loadPortfolio(chatID)
+        credentials, sheetsFile = usersManager.getUserData(mode, chatID)
+        dateFormat = usersManager.getUserDateFormat(mode, chatID)
+        
+        
+
+        date = income['date']
+        price = income['price']
+        description = income['description']
+
+
+        # Sheet corresponding to the months expense
+        dateClass = datetime.datetime.strptime(date, "%d/%m/%Y")
+        sheet = months[str(dateClass.month)] + str(dateClass.year)[-2:] + "!S9:U"
+        
+        # Adjust date depending on shpreadsheet's date preferences
+        if (dateFormat == "mmddyy"):
+                date2 = datetime.datetime.strptime(date, "%d/%m/%Y")
+                date = str(date2.month) + '/' + str(date2.day) + '/' + str(date2.year)
+
+        # Expense array creation
+        expense = [[date, price, description]]        
+
+
+        try:
+                request = portfolio.values().append(
+                        spreadsheetId=sheetsFile,
+                        range = sheet,
+                        valueInputOption="USER_ENTERED",
+                        # insertDataOption="INSERT_ROWS",
+                        body={"values":expense}).execute()
+                print('Nueva transacción: ' + usersManager.getUserName(mode, chatID) + " --> " + str(expense))
+                # return True
+
+        except HttpError as error:
+                print(str(error))
 
 
 def deleteExpense(chatID, date, index):
@@ -132,9 +171,9 @@ def deleteExpense(chatID, date, index):
                 print(str(error))
         
 
-def getMonthExpenses(chatID, date):
+def getMonthExpenses(mode, chatID, date):
         portfolio = loadPortfolio(chatID)
-        credentials, sheetsFile = usersManager.getUserData("dev", chatID)
+        credentials, sheetsFile = usersManager.getUserData(mode, chatID)
 
         try:
                 dateClass = datetime.datetime.strptime(date, "%d/%m/%Y")
