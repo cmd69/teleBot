@@ -136,6 +136,7 @@ def addExpense(mode, chatID, year, month, expense):
         json.dump(data, file, indent=4, cls=DecimalEncoder)
         file.truncate()
 
+
 def get_expenses(mode, chatID, year, month):
     
     try:
@@ -152,63 +153,6 @@ def get_expenses(mode, chatID, year, month):
             break
     
     return [], 0, 0
-
-
-
-# UPDATES JSON WITH SHEETS
-# WONT BE NECESSARY
-def updateMonthExpenses(chatID, dates):
-
-    for date in dates:
-        datem = datetime.datetime.strptime(date, "%d/%m/%Y")
-        yy = datem.year
-        mm = datem.month
-
-        print("Updating " + datem.strftime("%B") + " expenses...")
-
-        exp = sheetsManager.getMonthExpenses(chatID, date, "Todas", False)
-        sheetExpenses = createExpenseObj(exp[0])
-
-        jsonDB = getExpenses(chatID)
-
-        for year in jsonDB:
-
-            id = year.get('year')
-            if (str(yy) == id):
-                year['months'][str(mm)]['Expenses'] = sheetExpenses
-                saveFile(chatID, jsonDB)
-
-    return True
-
-
-
-# ADD NEW EXPENSE TO A MONTH
-
-def newExpense(chatID, date, category, subcategory, price, description):
-
-    if (chatID == None or date == None or category == None or price == None):
-        return False
-
-    datem = datetime.datetime.strptime(date, "%d/%m/%Y")
-    yy = datem.year
-    mm = datem.month
-
-    expenses = getExpenses(chatID)
-
-    for year in expenses:
-        
-        expensesYear = year.get('year')  
-        
-        if (expensesYear == str(yy)):
-            
-            # try:
-            e = createExpenseObj([[date, category, subcategory, price, description]])
-            sheetsManager.newExpense(chatID, e)
-            # year['months'][str(mm)]['Expenses'].append(e[0])
-            year['months'][str(mm)].append(e[0])
-            return saveFile(chatID, expenses)
-
-    return False
 
 
 def newIncomeJson(mode, chatID, income):

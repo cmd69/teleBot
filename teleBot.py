@@ -367,9 +367,11 @@ async def get_price(message: types.Message, state: FSMContext):
                 'description': data['description']
             }
 
-            dbManager.newExpenseJson(mode, chatID, expenseObject)
+            # dbManager.newExpenseJson(mode, chatID, expenseObject)
+            c = dbManager.newExpense(mode, chatID, expenseObject)
+            print(c)
 
-            await message.answer('Nuevo gasto procesado correctamente ✅\n', reply_markup=types.ReplyKeyboardRemove())
+            await message.answer('Nuevo ingreso procesado correctamente ✅\n', reply_markup=types.ReplyKeyboardRemove())
             await bot.send_message(
                 chatID,
                 md.text(
@@ -547,7 +549,8 @@ async def get_price(message: types.Message, state: FSMContext):
                 'description': data['description']
             }
 
-            dbManager.newIncomeJson(mode, chatID, income)
+            # dbManager.newIncomeJson(mode, chatID, income)
+            dbManager.newIncome(mode, chatID, income)
 
             await message.answer('Nuevo gasto procesado correctamente ✅\n', reply_markup=types.ReplyKeyboardRemove())
             await bot.send_message(
