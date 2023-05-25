@@ -51,10 +51,12 @@ def getUserCreds(chatID):
                 data = json.load(f)
         return data[str(chatID)]["credFile"]
 
+
 def dateToDDMM(date):
         date2 = datetime.datetime.strptime(date, "%m/%d/%Y")
         date = str(date2.day) + '/' + str(date2.month) + '/' + str(date2.year)
         return date
+
 
 def dateToMMDD(date):
         date2 = datetime.datetime.strptime(date, "%d/%m/%Y")
@@ -137,7 +139,7 @@ def getMonthExpenses(chatID, date):
         try:
                 dateClass = datetime.datetime.strptime(date, "%d/%m/%Y")
         except:
-                print("daoSheets.getMonthExpenses: strptime except")
+                print("sheetsManager.getMonthExpenses: strptime except")
                 dateClass = date
         
         sheet = months[str(dateClass.month)] + str(dateClass.year)[-2:] + "!B10:F"
