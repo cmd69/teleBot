@@ -1,16 +1,20 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask
-import json
 import threading
 import datetime
-from UsersManager import UsersManager
-from DBManager import DBManager
+
 
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram import Bot, Dispatcher, executor, types
 
+
+
+
 # Local Imports
+from keyboardsGenerator import KeyboardsGenerator
+from tablesGenerator import TableGenerator
+from DBManager import DBManager
 
 ## Import the button dictionaries from separate files
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -19,17 +23,13 @@ from database.keyboards.portfolio_keyboard import portfolio_buttons
 from database.keyboards.fetch_data_keyboard import fetch_data_buttons
 from database.keyboards.benz_keyboard import benz_buttons
 from aiogram.dispatcher.filters.state import State, StatesGroup
-import math
-import prettytable as pt
 
 from telegram_bot_calendar import DetailedTelegramCalendar, MonthTelegramCalendar, LSTEP
-from telegram_bot_pagination import InlineKeyboardPaginator
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 # from datetime import date, timedelta, datetime
 import dateutil.relativedelta
-
 
 import aiogram.utils.markdown as md
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -69,6 +69,12 @@ flask_thread.start()
 bot = Bot(token=app.config["BOT_TOKEN"])
 storage = MemoryStorage()  # external storage is supported!
 dp = Dispatcher(bot, storage=storage)
+
+
+dbManager = DBManager(mode)
+usersManager = dbManager.get_users_manager()
+keyboardFactory = KeyboardsGenerator(usersManager)
+tablesFactory = TableGenerator(usersManager)
 
 
 
@@ -156,7 +162,9 @@ class Fill(StatesGroup):
 
 
 
-dbManager = DBManager(mode)
+
+
+
 
 # /Start and /Help
 @dp.message_handler(commands=['updateJson'])
@@ -184,11 +192,6 @@ async def welcome(message: types.Message):
     dbManager.delete_income(chatID, income)
     dbManager.delete_expense(chatID, expense)
     
-
-    # print(c)
-    # print(c)
-    # json_file = users_manager.user_exists("256900373")
-    # print(json_file)
 
 # /Start and /Help
 @dp.message_handler(commands=['start'])
@@ -235,6 +238,19 @@ async def random_value(call: types.CallbackQuery):
         await call.message.answer("No tienes acceso a este servicio")   
 
 
+# Back Button
+@dp.callback_query_handler(text = ["back"])
+async def backButton(call: types.CallbackQuery):
+    chatID = call.message.chat.id
+    messageID = call.message.message_id
+    
+    await bot.edit_message_text("Volviendo atrás...", chatID, messageID)
+            
+    await bot.edit_message_reply_markup( chatID, messageID,
+                            inline_message_id= None,
+                            reply_markup=ikMain)
+
+
 # --------------- START EXPENSE HANDLER --------------- #
 
 @dp.callback_query_handler(text = ["expense"])
@@ -243,7 +259,7 @@ async def newExpense(call: types.CallbackQuery):
 
     if (dbManager.user_exists(call.message.chat.id)):
         await Expense.category.set()
-        await call.message.answer("Introduce la categoría", reply_markup=getCategoriesKeyboard(call.message.chat.id))    
+        await call.message.answer("Introduce la categoría", reply_markup=keyboardFactory.getCategoriesKeyboard(call.message.chat.id))    
     else:
         await call.message.answer("No tienes acceso a este servicio")    
 
@@ -255,7 +271,7 @@ async def process_name(message: types.Message, state: FSMContext):
     Get Category
     Ask Price    
     """
-
+    chatID = message.chat.id
     if (message.text[:-1] == 'Cancel'):
         await state.finish()
 
@@ -266,7 +282,8 @@ async def process_name(message: types.Message, state: FSMContext):
 
             data['category'] = message.text[:-1]
 
-            key = getSubcategoriesKeyboard(message.chat.id, data['category'], True, "")
+
+            key = keyboardFactory.getSubcategoriesKeyboard(chatID, data['category'], True, "")
 
             if (not key):
                 await Expense.next()        
@@ -396,8 +413,8 @@ async def get_price(message: types.Message, state: FSMContext):
 
             # dbManager.newExpenseJson(mode, chatID, expenseObject)
             # c = dbManager.newExpense(mode, chatID, expenseObject)
-            c = dbManager.add_expense(chatID, expenseObject)
-            print(c)
+            dbManager.add_expense(chatID, expenseObject)
+
 
             await message.answer('Nuevo ingreso procesado correctamente ✅\n', reply_markup=types.ReplyKeyboardRemove())
             await bot.send_message(
@@ -414,6 +431,27 @@ async def get_price(message: types.Message, state: FSMContext):
                 parse_mode=ParseMode.MARKDOWN,
             )
 
+
+# Cancel Button (Not in use)
+@dp.callback_query_handler(text = ["cancel"], state=Expense)
+async def cancelButton(call: types.CallbackQuery, state: FSMContext):
+    await state.finish()    
+    
+    chatID = call.message.chat.id
+    messageID = call.message.message_id
+    
+    # await call.message.answer("❌ Cancelando...", reply_markup=ikMain)
+
+    await bot.edit_message_text("❌ Cancelando...",
+                                    chatID,
+                                    messageID)
+
+    await bot.edit_message_reply_markup(
+                                chatID,
+                                messageID,
+                                inline_message_id= None,
+                                reply_markup=ikMain)  
+
 # ------------------ END EXPENSE HANDLER ---------------------- #
 
 
@@ -426,7 +464,7 @@ async def newExpense(call: types.CallbackQuery):
     messageID = call.message.message_id
     if (dbManager.user_exists(chatID)):
 
-        report = generate_overall_report(dbManager.get_all_expenses(chatID))
+        report = tablesFactory.generate_general_report(dbManager.get_all_expenses(chatID))
         # await call.message.edit_reply_markup(f'{report}', reply_markup=ikPortfolio)
         # await call.message.edit_reply_markup(f'{report}', reply_markup=ikPortfolio)
         
@@ -654,8 +692,8 @@ async def fetchAll(call: types.CallbackQuery, state: FSMContext):
     await FetchFilters.next()    
 
     
-    categories = dbManager.get_user_categories(chatID)
-    paginator = paginatorFactory(categories, 1, 9, "filter", "categorySelection", False)        
+    categories = usersManager.get_user_categories(chatID)
+    paginator = keyboardFactory.paginatorFactory(categories, 1, 9, "filter", "categorySelection", False)        
         
 
     # TODO Mostrar Stats Generales
@@ -678,9 +716,9 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
 
     chatID = call.message.chat.id
     messageID = call.message.message_id
-    categories =  dbManager.get_user_categories(chatID)
+    categories =  usersManager.get_user_categories(chatID)
     page = int(call.data.split('#')[1])  
-    paginator = paginatorFactory(categories, page, 9, "filter", "categorySelection", False)
+    paginator = keyboardFactory.paginatorFactory(categories, page, 9, "filter", "categorySelection", False)
 
     
     await bot.edit_message_text("Deseas seleccionar algun filtro?",
@@ -723,8 +761,13 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
         except:
             monthStr = datetime.datetime.strftime(fetchMonth, "%B-%y")    
         
+        consult = {
+            'date': str(fetchMonth),
+            'category': "Todas",
+            'subcategory': None
+        }
 
-        table = createExpensesTable(chatID, fetchMonth, False, category, False)
+        table = tablesFactory.generate_month_recap(consult, dbManager.get_expenses(chatID, consult))
         
         await bot.edit_message_text(f'<pre>GASTOS DE {monthStr.upper()}</pre> <pre>{table}</pre>',
                                         chatID,
@@ -738,7 +781,7 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
     else:
      
         
-        key = getSubcategoriesKeyboard(chatID, category, False, "subcategorySelection")
+        key = keyboardFactory.getSubcategoriesKeyboard(chatID, category, False, "subcategorySelection")
         
         if ( key != False):
 
@@ -774,7 +817,15 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
             monthStr = datetime.datetime.strptime(fetchMonth, "%d/%m/%Y")
             monthStr = datetime.datetime.strftime(monthStr, "%B-%y")
 
-            table = createExpensesTable(chatID, fetchMonth, True, category, False)
+                       
+            consult = {
+                'date': str(fetchMonth),
+                'category': category,
+                'subcategory': None
+            }
+
+            expenses = dbManager.get_expenses(chatID, consult)
+            table = tablesFactory.generate_month_recap(consult, expenses)
 
             await bot.edit_message_text(f'<pre>GASTOS DE {monthStr.upper()}</pre> <pre>{table}</pre>',
                                             chatID,
@@ -794,6 +845,7 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
     messageID = call.message.message_id
     
     subcategory = str(call.data).split('#')[1]
+    subcategory = subcategory.rstrip(subcategory[-1])
     month = datetime.date.today().strftime('%d/%m/%Y')
 
 
@@ -808,7 +860,15 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
         monthStr = datetime.datetime.strftime(monthStr, "%B-%y")
         
 
-        table = createExpensesTable(chatID, fetchMonth, True, cat, subcategory)
+        consult = {
+            'date': fetchMonth,
+            'category': cat,
+            'subcategory': subcategory
+        }
+
+
+        table = tablesFactory.generate_month_recap(consult, dbManager.get_expenses(chatID, consult))
+
 
         await bot.edit_message_text(f'<pre>GASTOS DE {monthStr.upper()}</pre> <pre>{table}</pre>',
                                         chatID,
@@ -861,8 +921,8 @@ async def inline_kb_answer_callback_handler(call, state: FSMContext):
             proxy['date'] = result
             await FetchFilters.next()
 
-            categories = dbManager.get_user_categories(chatID)
-            paginator = paginatorFactory(categories, 1, 9, "filter", "categorySelection", False)        
+            categories = usersManager.get_user_categories(chatID)
+            paginator = keyboardFactory.paginatorFactory(categories, 1, 9, "filter", "categorySelection", False)        
                 
 
             # TODO Mostrar Stats Generales
@@ -875,10 +935,28 @@ async def inline_kb_answer_callback_handler(call, state: FSMContext):
                                         reply_markup=paginator.markup)
 
 
+# Cancel Button (Not in use)
+@dp.callback_query_handler(text = ["cancel"], state=FetchFilters)
+async def cancelButton(call: types.CallbackQuery, state: FSMContext):
+    await state.finish()    
+    
+    chatID = call.message.chat.id
+    messageID = call.message.message_id
+    
+    # await call.message.answer("❌ Cancelando...", reply_markup=ikMain)
+
+    await bot.edit_message_text("❌ Cancelando...",
+                                    chatID,
+                                    messageID)
+
+    await bot.edit_message_reply_markup(
+                                chatID,
+                                messageID,
+                                inline_message_id= None,
+                                reply_markup=ikMain) 
+
+
 # --------------- END FETCH --------------- #
-
-
-
 
 
 
@@ -888,247 +966,6 @@ async def inline_kb_answer_callback_handler(call, state: FSMContext):
 # ------- AUX FUNCS -----  #
 
 
-# Plantilla para la creación de los gastos mensuales (Dia, Categoria, Descripcion)
-def createExpensesTable(chatID, date, filter, category, subcategory):
-
-
-    table = pt.PrettyTable(['📅', '🔰', '💸'])
-    table.field_names = ["Date 📅", "Cat. 🔰", "Price 💸"]
-
-
-    try:
-        subcategory = subcategory.rstrip(subcategory[-1])
-    except:
-        pass
-
-    fetchObject = {
-        'date': date,
-        'category': category,
-        'subcategory': subcategory
-    }
-    
-    expenses = dbManager.get_expenses(chatID, fetchObject)
-    total_expenses = 0
-
-    # 1 Mostrar TODOS los gastos
-    # 2 Mostrar subcategorias de una categoria
-    if (not filter or not subcategory):
-        table.field_names = ["Date 📅", "Cat. 🔰", "Price 💸"]
-        # Add rows to the table and calculate total expenses
-        for expense in expenses:
-            day = expense['date'].split('/')[0]
-            category = expense['category']
-            price = expense['price']
-            table.add_row([day, category, f"${price}"])
-            total_expenses += round(float(price), 2)
-    else:
-        table.field_names = ["Date 📅", "Desc. 🗓️", "Price 💸"]
-        # Add rows to the table and calculate total expenses
-        for expense in expenses:
-            day = expense['date'].split('/')[0]
-            description = expense['description']
-            price = expense['price']
-            table.add_row([day, description, f"${price}"])
-            total_expenses += price
-
-    # Calculate remaining amount
-    tIncome = 12345
-    remaining = tIncome - total_expenses
-
-    table.align = "l"
-    table.padding_width = 1
-    table.format = True
-
-    # Create a string with the formatted table
-    formatted_table = f"\n\n{table}\n\n \nIncome: {round(tIncome,2)} € \nExpenses: {round(total_expenses,2)} €\nSaved: {round(remaining,2)} €"
-
-    return formatted_table
-
-def generate_overall_report2(json_data):
-    recap_message = "💰 Budget Recap 💰\n\n"
-    
-    years = json_data["years"]
-    total_income = 0
-    total_expenses = 0
-    total_saved = 0
-    total_income_count = 0
-    total_expenses_count = 0
-    
-    for year_data in years:
-        months = year_data["months"]
-        
-        for month_data in months:
-            expenses = month_data["expenses"]
-            income = month_data["income"]
-            
-            if income:
-                total_income += sum(entry['price'] for entry in income)
-                total_income_count += len(income)
-            
-            if expenses:
-                total_expenses += sum(entry['price'] for entry in expenses)
-                total_expenses_count += len(expenses)
-    
-    # Calculate average income
-    if total_income_count > 0:
-        average_income = total_income / total_income_count
-        recap_message += f"💵 Avg. Income:\t €{average_income:.0f}\n"
-    
-    # Calculate average expenses
-    if total_expenses_count > 0:
-        average_expenses = total_expenses / total_expenses_count
-        recap_message += f"💸 Avg. Expenses:\t €{average_expenses:.0f} ({(average_expenses / total_income) * 100:.0f}%)\n"
-    
-    # Calculate average saved
-    average_saved = average_income - average_expenses
-    recap_message += f"💰 Avg. Saved:\t €{average_saved:.0f} ({(average_saved / total_income) * 100:.0f}%)\n\n"
-    
-    # Calculate average category expenses
-    all_expenses = [entry for year_data in years for month_data in year_data["months"] for entry in month_data["expenses"]]
-    categories = {}
-    total_expenses = 0
-    
-    for expense in all_expenses:
-        category = expense["category"]
-        price = expense["price"]
-        total_expenses += price
-        
-        if category in categories:
-            categories[category]["total"] += price
-            categories[category]["count"] += 1
-        else:
-            categories[category] = {"total": price, "count": 1}
-    
-    recap_message += "📊 Category Averages\n\n"
-    
-    for category, data in categories.items():
-        average_expense = data["total"] / data["count"]
-        percentage_of_expenses = (data["total"] / total_expenses) * 100
-        recap_message += f"{category}:\t €{average_expense:.0f}\t ({percentage_of_expenses:.0f}%)\n"
-    
-    return recap_message
-
-def generate_overall_report(json_data):
-    recap_message = "💰 Budget Recap 💰\n\n"
-    
-    years = json_data["years"]
-    total_income = 0
-    total_expenses = 0
-    total_saved = 0
-    total_income_count = 0
-    total_expenses_count = 0
-    
-    for year_data in years:
-        months = year_data["months"]
-        
-        for month_data in months:
-            expenses = month_data["expenses"]
-            income = month_data["income"]
-            
-            if income:
-                total_income += sum(entry['price'] for entry in income)
-                total_income_count += len(income)
-            
-            if expenses:
-                total_expenses += sum(entry['price'] for entry in expenses)
-                total_expenses_count += len(expenses)
-    
-    # Calculate average income
-    if total_income_count > 0:
-        average_income = total_income / total_income_count
-        recap_message += f"💵 Avg. Income: €{average_income:.2f}\n"
-    
-    # Calculate average expenses
-    if total_expenses_count > 0:
-        average_expenses = total_expenses / total_expenses_count
-        percentage_of_expenses = (average_expenses / total_income) * 100
-        recap_message += f"💸 Avg. Expenses: €{average_expenses:.2f} ({percentage_of_expenses:.2f}%)\n"
-    
-    # Calculate average saved
-    average_saved = average_income - average_expenses
-    recap_message += f"💰 Avg. Saved: €{average_saved:.2f} ({(average_saved / total_income) * 100:.2f}%)\n\n"
-    
-    # Calculate average category expenses
-    all_expenses = [entry for year_data in years for month_data in year_data["months"] for entry in month_data["expenses"]]
-    categories = {}
-    total_expenses = 0
-    
-    for expense in all_expenses:
-        category = expense["category"]
-        price = expense["price"]
-        total_expenses += price
-        
-        if category in categories:
-            categories[category]["total"] += price
-            categories[category]["count"] += 1
-        else:
-            categories[category] = {"total": price, "count": 1}
-    
-    recap_message += "📊 Category Averages\n"
-    
-    # Create the pretty table
-    table = pt.PrettyTable()
-    table.field_names = ["Category", "Avg (€)", "(%)"]
-    
-    for category, data in categories.items():
-        average_expense = data["total"] / data["count"]
-        percentage_of_expenses = (data["total"] / total_expenses) * 100
-        table.add_row([category, f"€{average_expense:.2f}", f"{percentage_of_expenses:.2f}"])
-    
-    recap_message += str(table)
-    
-    return recap_message
-
-
-
-
-
-
-
-# Create any paginator
-def paginatorFactory(elements, page, gridSize, footerCommand, callbackCommand, expenses):
-    
-    
-    size = len(elements)
-    
-
-    if (not expenses): size+=1
-
-    paginator = InlineKeyboardPaginator(
-        math.ceil(size/gridSize),
-        current_page=page,
-        data_pattern='/'+ footerCommand + '#{page}'
-    )
-    
-
-    for i in range((page-1)*gridSize, page*gridSize, gridSize):
-        list = []
-
-        for c in range(i, i+gridSize):
-            if (c >= len(elements)):
-                cat = ""
-            else:
-                if (expenses):
-                    cat = elements[c][0] + " " + elements[c][1] + " " + elements[c][2] + " " + elements[c][3]  
-                else:
-                    cat = elements[c]
-            if(not expenses):
-                list.append(InlineKeyboardButton(text=cat, callback_data='/{}#{}'.format(callbackCommand, cat)))
-            else:
-                list.append(InlineKeyboardButton(text=cat, callback_data='/{}#{}'.format(callbackCommand, c)))
-
-        if (page == 1 and not expenses): 
-            list.insert(0, InlineKeyboardButton(text="Todas✅", callback_data='/{}#{}'.format(callbackCommand, "Todas✅")))
-
-        if (expenses):
-            for but in list:
-                paginator.add_before(but)
-        else:
-            paginator.add_before(list[0], list[1], list[2])
-            paginator.add_before(list[3], list[4], list[5])
-            paginator.add_before(list[6], list[7], list[8])
-    
-    return paginator
 
 
 def isfloat(num):
@@ -1138,63 +975,7 @@ def isfloat(num):
     except ValueError:
         return False
 
-def getCategoriesKeyboard(chatID):
-    
-    ikCategories = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    
-    for elem in dbManager.get_user_categories(chatID):
-        ikCategories.insert(KeyboardButton(elem))
 
-    ikCategories.add(KeyboardButton('Cancel❌'))
-
-    return ikCategories
-
-def getSubcategoriesKeyboard(chatID, parentCategoryID, markup, callback):
-    # Creates Markup or Inline Keyboard. Callback Arg only for
-    # Inline Keyboards
-
-    with open(dbManager.get_user_categories_file(chatID)) as f:
-        data = json.load(f)
-
-    if (markup):
-
-        ikSubCategories = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-        ikSubCategories.add(KeyboardButton('Cancel❌'))
-        ikSubCategories.add(KeyboardButton('OtroX'))
-        
-        for elem in data:
-            category = elem["category"]
-
-            if (category.rstrip(category[-1]) == parentCategoryID
-                and elem["subcategories"] != []):
-                
-
-                for subcat in elem["subcategories"]:
-                    ikSubCategories.insert(KeyboardButton(subcat))            
-        
-                return ikSubCategories
-
-    else:
-        ikSubCategories = InlineKeyboardMarkup()
-
-        for elem in data:
-            category = elem["category"]
-
-            if (category.rstrip(category[-1]) == parentCategoryID
-                and elem["subcategories"] != []):
-                
-                ikSubCategories.insert(InlineKeyboardButton("TodasX", callback_data="/{}#{}".format(callback, "TodasX")))
-                
-                for subcat in elem["subcategories"]:
-                    n = InlineKeyboardButton(text=subcat, callback_data="/{}#{}".format(callback, subcat))
-                    ikSubCategories.insert(n)
-                 
-                ikSubCategories.insert(InlineKeyboardButton(text="Cancelar❌", callback_data="CancelX"))
-
-        
-                return ikSubCategories
-
-    return False
 
 db3 = KeyboardButton('Null')
 mkDescription = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(db3, KeyboardButton('Cancel❌'))

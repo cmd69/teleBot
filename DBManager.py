@@ -11,14 +11,11 @@ class DBManager:
         self.json_manager = JsonManager(self.mode, self.users_manager)
         self.sheets_manager = SheetsManager(self.mode, self.users_manager)
 
+    def get_users_manager(self):
+        return self.users_manager
+
     def user_exists(self, chatID):
         return self.users_manager.user_exists(chatID)
-
-    def get_user_categories(self, chatID):
-        return self.users_manager.get_user_categories(chatID)
-
-    def get_user_categories_file(self, chatID):
-        return self.users_manager.get_user_categories_file(chatID)
 
     def add_expense(self, chatID, expense):
         if self.users_manager.user_json_on(chatID):
@@ -90,7 +87,6 @@ class DBManager:
 
     def _filter_expenses(self, expenses, category, subcategory):
         # round(float(m['totalIncome']),2), round(float(m['totalExpenses']),2)
-        
         filtered = []
         
         try:
