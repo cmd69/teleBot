@@ -3,8 +3,6 @@ from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButt
 from telegram_bot_pagination import InlineKeyboardPaginator
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 import math
-import json
-from DBManager import DBManager
 
 # dbManager = DBManager("dev")
 
