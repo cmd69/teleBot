@@ -78,6 +78,18 @@ class UsersManager:
         except (FileNotFoundError, KeyError) as e:
             raise RuntimeError(f"Failed to retrieve categories file for chat ID {chatID}: {e}")
 
+    def get_all_user_categories(self, chatID):
+        try:
+            file = self.get_user_categories_file(chatID)
+            with open(file) as f:
+                data = json.load(f)
+            return data
+
+        except FileNotFoundError:
+            raise Exception("Categories file not found.")
+        except (KeyError, ValueError):
+            raise Exception("Invalid JSON format in categories file.")
+
     def get_user_categories(self, chatID):
         try:
             file = self.get_user_categories_file(chatID)
