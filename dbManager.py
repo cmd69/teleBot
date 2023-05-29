@@ -1,6 +1,6 @@
-from UsersManager import UsersManager
-from JsonManager import JsonManager
-from SheetsManager import SheetsManager
+from usersManager import UsersManager
+from jsonManager import JsonManager
+from sheetsManager import SheetsManager
 import datetime
 
 

@@ -14,7 +14,7 @@ from aiogram import Bot, Dispatcher, executor, types
 # Local Imports
 from keyboardsGenerator import KeyboardsGenerator
 from tablesGenerator import TableGenerator
-from DBManager import DBManager
+from dbManager import DBManager
 
 ## Import the button dictionaries from separate files
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -58,10 +58,8 @@ else:
     flask_thread = threading.Thread(target=app.run, kwargs={'debug': True, 'use_reloader': False})
     app.config.from_pyfile('settings/configDev.py')
 
-
 flask_thread.start()
 
-# Start the Telegram bot using the aiogram executor
 
 #
 # ----- Bot Setup ----- #
@@ -108,6 +106,9 @@ fetch_data_buttons = {
 ikPortfolio = InlineKeyboardMarkup(row_width=3)
 ikFetchData = InlineKeyboardMarkup(row_width=3)
 ikBenz = InlineKeyboardMarkup(row_width=3)
+mkDescription = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(KeyboardButton('Null'), KeyboardButton('Cancel❌'))
+ikCancel = InlineKeyboardMarkup().add(InlineKeyboardButton(text="Cancel", callback_data="cancel"))
+ikNumeric = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add("1€", "2€", "5€", "10€", "20€", "50€", KeyboardButton('Cancel❌'))
 
 
 # Create buttons for ikMain
@@ -129,6 +130,14 @@ for key, value in fetch_data_buttons.items():
 for key, value in benz_buttons.items():
     button = InlineKeyboardButton(text=value, callback_data=key)
     ikBenz.insert(button)
+
+def isfloat(num):
+    try:
+        float(num)
+        return True
+    except ValueError:
+        return False
+
 
 
 
@@ -157,10 +166,6 @@ class Fill(StatesGroup):
     price = State()
     diesel = State()
     date = State()
-
-
-
-
 
 
 
@@ -478,14 +483,6 @@ async def newExpense(call: types.CallbackQuery):
                                             reply_markup=ikMain)
     else:
         await call.message.answer("No tienes acceso a este servicio")   
-
-
-
-
-
-
-
-
 
 
 
@@ -968,20 +965,7 @@ async def cancelButton(call: types.CallbackQuery, state: FSMContext):
 
 
 
-def isfloat(num):
-    try:
-        float(num)
-        return True
-    except ValueError:
-        return False
 
-
-
-db3 = KeyboardButton('Null')
-mkDescription = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(db3, KeyboardButton('Cancel❌'))
-pb10 = InlineKeyboardButton(text="Cancel", callback_data="cancel")
-ikCancel = InlineKeyboardMarkup().add(pb10)
-ikNumeric = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add("1€", "2€", "5€", "10€", "20€", "50€", KeyboardButton('Cancel❌'))
 
 
 if __name__ == '__main__':
