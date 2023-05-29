@@ -1,16 +1,11 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask
-import dbManager
-import jsonManager
-import usersManager
 import json
 import threading
-import asyncio
-import sheetsManager
 import datetime
-import calendar
-
+from UsersManager import UsersManager
+from DBManager import DBManager
 
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram import Bot, Dispatcher, executor, types
@@ -159,19 +154,51 @@ class Fill(StatesGroup):
 
 
 
+
+
+dbManager = DBManager(mode)
+
 # /Start and /Help
-@dp.message_handler(commands=['s'])
+@dp.message_handler(commands=['updateJson'])
 async def welcome(message: types.Message):
     chatID = message.chat.id
     messageID = message.message_id
-    c = dbManager.migrateSheetsToJson("dev", chatID, '22/04/2023', '22/05/2023')
+    # c = dbManager.migrateSheetsToJson("dev", chatID, '22/05/2022', '22/05/2023')
+    # c = dbManager.get_expenses_from_sheets('22/05/2022')
+    expense = {
+        "date": "30/05/2023",
+        "category": "Comida",
+        "subcategory": "Snacks",
+        "price": 100000,
+        "description": "SnickersChuches"
+    }
+    income = {
+        "date": "30/05/2023",
+        "price": 100000,
+        "description": "SnickersChuches"
+    }
+    
+    # c = dbManager.get_expenses_from_sheets("01/05/2023")
+    dbManager.add_expense(chatID, expense)
+    dbManager.add_income(chatID, income)
+    dbManager.delete_income(chatID, income)
+    dbManager.delete_expense(chatID, expense)
+    
+
+    # print(c)
+    # print(c)
+    # json_file = users_manager.user_exists("256900373")
+    # print(json_file)
 
 # /Start and /Help
 @dp.message_handler(commands=['start'])
 async def welcome(message: types.Message):
+    
     chatID = message.chat.id
     messageID = message.message_id
+    
     await message.answer("Hola, bienvenido a tu gestor de portfolio!", reply_markup=ikMain)
+    # sheetsManager.getMonthIncomes(mode, chatID, "22/05/2023")
 
 
 
@@ -182,7 +209,7 @@ async def random_value(call: types.CallbackQuery):
     chatID = call.message.chat.id
     messageID = call.message.message_id
 
-    if (usersManager.userExists(mode, chatID)):
+    if (dbManager.user_exists(chatID)):
         
         if call.data == "portfolio":
             
@@ -214,7 +241,7 @@ async def random_value(call: types.CallbackQuery):
 async def newExpense(call: types.CallbackQuery):
 
 
-    if (usersManager.userExists(mode, call.message.chat.id)):
+    if (dbManager.user_exists(call.message.chat.id)):
         await Expense.category.set()
         await call.message.answer("Introduce la categoría", reply_markup=getCategoriesKeyboard(call.message.chat.id))    
     else:
@@ -368,7 +395,8 @@ async def get_price(message: types.Message, state: FSMContext):
             }
 
             # dbManager.newExpenseJson(mode, chatID, expenseObject)
-            c = dbManager.newExpense(mode, chatID, expenseObject)
+            # c = dbManager.newExpense(mode, chatID, expenseObject)
+            c = dbManager.add_expense(chatID, expenseObject)
             print(c)
 
             await message.answer('Nuevo ingreso procesado correctamente ✅\n', reply_markup=types.ReplyKeyboardRemove())
@@ -396,9 +424,9 @@ async def newExpense(call: types.CallbackQuery):
 
     chatID = call.message.chat.id
     messageID = call.message.message_id
-    if (usersManager.userExists(mode, chatID)):
+    if (dbManager.user_exists(chatID)):
 
-        report = generate_overall_report(jsonManager.getExpenses("dev", chatID))
+        report = generate_overall_report(dbManager.get_all_expenses(chatID))
         # await call.message.edit_reply_markup(f'{report}', reply_markup=ikPortfolio)
         # await call.message.edit_reply_markup(f'{report}', reply_markup=ikPortfolio)
         
@@ -433,7 +461,7 @@ async def newExpense(call: types.CallbackQuery):
 
     chatID = call.message.chat.id
     messageID = call.message.message_id
-    if (usersManager.userExists(mode, chatID)):
+    if (dbManager.user_exists(chatID)):
         await Income.date.set()
         calendar, step = DetailedTelegramCalendar(calendar_id=3).build()
         
@@ -549,8 +577,7 @@ async def get_price(message: types.Message, state: FSMContext):
                 'description': data['description']
             }
 
-            # dbManager.newIncomeJson(mode, chatID, income)
-            dbManager.newIncome(mode, chatID, income)
+            dbManager.add_income(chatID, income)
 
             await message.answer('Nuevo gasto procesado correctamente ✅\n', reply_markup=types.ReplyKeyboardRemove())
             await bot.send_message(
@@ -587,7 +614,7 @@ async def fetchExpenses(call: types.CallbackQuery):
     chatID = call.message.chat.id
     messageID = call.message.message_id
 
-    if (usersManager.userExists(mode, chatID)):
+    if (dbManager.user_exists(chatID)):
 
         await bot.edit_message_text("Selecciona el consumo que quieres ver... ",
                                     chatID,
@@ -627,7 +654,7 @@ async def fetchAll(call: types.CallbackQuery, state: FSMContext):
     await FetchFilters.next()    
 
     
-    categories = usersManager.getUserCategories(mode, chatID)
+    categories = dbManager.get_user_categories(chatID)
     paginator = paginatorFactory(categories, 1, 9, "filter", "categorySelection", False)        
         
 
@@ -651,7 +678,7 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
 
     chatID = call.message.chat.id
     messageID = call.message.message_id
-    categories =  usersManager.getUserCategories(mode, chatID)
+    categories =  dbManager.get_user_categories(chatID)
     page = int(call.data.split('#')[1])  
     paginator = paginatorFactory(categories, page, 9, "filter", "categorySelection", False)
 
@@ -834,7 +861,7 @@ async def inline_kb_answer_callback_handler(call, state: FSMContext):
             proxy['date'] = result
             await FetchFilters.next()
 
-            categories = usersManager.getUserCategories(mode, chatID)
+            categories = dbManager.get_user_categories(chatID)
             paginator = paginatorFactory(categories, 1, 9, "filter", "categorySelection", False)        
                 
 
@@ -880,7 +907,7 @@ def createExpensesTable(chatID, date, filter, category, subcategory):
         'subcategory': subcategory
     }
     
-    expenses, tIncome, tExpenses = dbManager.getMonthExpensesJson(mode, chatID, fetchObject)
+    expenses = dbManager.get_expenses(chatID, fetchObject)
     total_expenses = 0
 
     # 1 Mostrar TODOS los gastos
@@ -905,25 +932,15 @@ def createExpensesTable(chatID, date, filter, category, subcategory):
             total_expenses += price
 
     # Calculate remaining amount
+    tIncome = 12345
     remaining = tIncome - total_expenses
-    # table.bottom_junction_char("-")
-    # Add a row for total expenses, income, and remaining
-    # table.add_row(['T', '-', str(1000) + ' €'])
-    table.add_row(['Expenses', '-', f"{round(total_expenses,2)} €"])
-    table.add_row(['Income', '-', f"{round(tIncome,2 )} €"])
-    table.add_row(['Saved', '-', f"{round(remaining, 2)} €"])
 
-    
-    
-
-    # Decorate the table with emojis
-    # table.set_style(9)  # Choose a fancy table style
     table.align = "l"
     table.padding_width = 1
     table.format = True
 
     # Create a string with the formatted table
-    formatted_table = f"Income: {round(tIncome,2)} € \nExpenses: {round(total_expenses,2)} €\nSaved: {round(remaining,2)} € \n\n{table}"
+    formatted_table = f"\n\n{table}\n\n \nIncome: {round(tIncome,2)} € \nExpenses: {round(total_expenses,2)} €\nSaved: {round(remaining,2)} €"
 
     return formatted_table
 
@@ -1125,7 +1142,7 @@ def getCategoriesKeyboard(chatID):
     
     ikCategories = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     
-    for elem in usersManager.getUserCategories(mode, chatID):
+    for elem in dbManager.get_user_categories(chatID):
         ikCategories.insert(KeyboardButton(elem))
 
     ikCategories.add(KeyboardButton('Cancel❌'))
@@ -1136,7 +1153,7 @@ def getSubcategoriesKeyboard(chatID, parentCategoryID, markup, callback):
     # Creates Markup or Inline Keyboard. Callback Arg only for
     # Inline Keyboards
 
-    with open(usersManager.getUserCategoriesFile(mode, chatID)) as f:
+    with open(dbManager.get_user_categories_file(chatID)) as f:
         data = json.load(f)
 
     if (markup):
