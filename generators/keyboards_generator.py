@@ -1,10 +1,9 @@
+import math
 from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
-
 from telegram_bot_pagination import InlineKeyboardPaginator
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-import math
 
-# dbManager = DBManager("dev")
+
 
 class KeyboardsGenerator:
     def __init__(self, users_manager) -> None:

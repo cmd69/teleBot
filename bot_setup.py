@@ -1,8 +1,13 @@
+# Local Imports
+from managers.db_manager import DBManager
+from generators.tables_generator import TableGenerator
+from generators.keyboards_generator import KeyboardsGenerator
+
+# Libraries
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from managers.db_manager import DBManager
-from generators.keyboards_generator import KeyboardsGenerator
-from generators.tables_generator import TableGenerator
+
+
 
 def setup_bot(app):
     bot = Bot(token=app.config["BOT_TOKEN"])

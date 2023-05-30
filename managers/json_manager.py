@@ -1,8 +1,15 @@
-import json
+# Local
 from managers.users_manager import UsersManager
+from utils import DecimalEncoder
+
+# Libraries
+import json
 import decimal
 import datetime
-from utils import DecimalEncoder
+
+
+
+
 
 class JsonManager:
     def __init__(self, mode, users_manager):
