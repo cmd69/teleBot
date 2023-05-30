@@ -1,17 +1,13 @@
-
-#delete
-from flask import Flask
-import threading
-import os
-
+# calendar
 from telegram_bot_calendar import DetailedTelegramCalendar, MonthTelegramCalendar, LSTEP
 
 # aiogram
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode
-from aiogram import types
 import aiogram.utils.markdown as md
+from aiogram import types
+
 
 # Local Imports
 from telebot import dp, bot, dbManager, usersManager, keyboardFactory, tablesFactory

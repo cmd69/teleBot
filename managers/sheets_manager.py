@@ -1,12 +1,9 @@
-from __future__ import print_function
 import os
 import datetime
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2 import service_account
-from dotenv import load_dotenv
 
-# from UsersManager import UsersManager
 
 months = {
     "1": "JAN",
