@@ -1,175 +1,34 @@
-import os
-from dotenv import load_dotenv
+
+#delete
 from flask import Flask
 import threading
-import datetime
-
-
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram import Bot, Dispatcher, executor, types
-
-
-
-
-# Local Imports
-from keyboardsGenerator import KeyboardsGenerator
-from tablesGenerator import TableGenerator
-from dbManager import DBManager
-
-## Import the button dictionaries from separate files
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
-from database.keyboards.portfolio_keyboard import portfolio_buttons
-from database.keyboards.fetch_data_keyboard import fetch_data_buttons
-from database.keyboards.benz_keyboard import benz_buttons
-from aiogram.dispatcher.filters.state import State, StatesGroup
+import os
 
 from telegram_bot_calendar import DetailedTelegramCalendar, MonthTelegramCalendar, LSTEP
-from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-# from datetime import date, timedelta, datetime
-import dateutil.relativedelta
 
-import aiogram.utils.markdown as md
+# aiogram
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
-from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import ParseMode
-from aiogram.utils import executor
+from aiogram import types
+import aiogram.utils.markdown as md
+
+# Local Imports
+from telebot import dp, bot, dbManager, usersManager, keyboardFactory, tablesFactory
+from states import Expense, Income, FetchFilters
+from utils import isfloat
 
 
-# ╔═════════════════════╗
-# ||| INITIALIZATIONS |||
-# ╚═════════════════════╝
-
-
-#
-# ----- Flask Setup ----- #
-#
-app = Flask(__name__)
-mode = os.environ.get('TELEBOT_ENV', 'dev')  # Default to development mode if not specified
-
-if mode == 'prod':
-    app.config.from_pyfile('settings/configProd.py')
-    flask_thread = threading.Thread(target=app.run, kwargs={'debug': False, 'use_reloader': False})
-else:
-    flask_thread = threading.Thread(target=app.run, kwargs={'debug': True, 'use_reloader': False})
-    app.config.from_pyfile('settings/configDev.py')
-
-flask_thread.start()
-
-
-#
-# ----- Bot Setup ----- #
-#
-bot = Bot(token=app.config["BOT_TOKEN"])
-storage = MemoryStorage()  # external storage is supported!
-dp = Dispatcher(bot, storage=storage)
-
-
-dbManager = DBManager(mode)
-usersManager = dbManager.get_users_manager()
-keyboardFactory = KeyboardsGenerator(usersManager)
-tablesFactory = TableGenerator(usersManager)
-
+# others
+import dateutil.relativedelta
+import datetime
 
 
 #
 # ----- Keyboards Setup ----- #
 #
-benz_buttons = {
-    "ride": "Nuevo Recorrido",
-    "fill": "Llenar Depósito",
-    "fetchBenz": "Consultar",
-    "back": "Atras ↩️"
-}
 
-portfolio_buttons = {
-    "income": "Ingreso",
-    "expense": "Gasto",
-    "fetch": "Consultar",
-    "deleteExpense": "Eliminar Gasto",
-    "back": "Atras ↩️"
-}
-
-fetch_data_buttons = {
-    "general": "General",
-    "currMonth": "Este Mes",
-    "lastMonth": "Mes Pasado",
-    "customMonth": "Otro Mes",
-    "back": "Atras ↩️"
-}
-
-# Create InlineKeyboardMarkup for each dictionary
-ikPortfolio = InlineKeyboardMarkup(row_width=3)
-ikFetchData = InlineKeyboardMarkup(row_width=3)
-ikBenz = InlineKeyboardMarkup(row_width=3)
-mkDescription = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(KeyboardButton('Null'), KeyboardButton('Cancel❌'))
-ikCancel = InlineKeyboardMarkup().add(InlineKeyboardButton(text="Cancel", callback_data="cancel"))
-ikNumeric = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add("1€", "2€", "5€", "10€", "20€", "50€", KeyboardButton('Cancel❌'))
-
-
-# Create buttons for ikMain
-ib1 = InlineKeyboardButton(text="Portfolio 📊", callback_data="portfolio")
-ib2 = InlineKeyboardButton(text="Benz 🚓", callback_data="benz")
-ikMain = InlineKeyboardMarkup().add(ib1, ib2)
-
-# Create buttons for ikPortfolio
-for key, value in portfolio_buttons.items():
-    button = InlineKeyboardButton(text=value, callback_data=key)
-    ikPortfolio.insert(button)
-
-# Create buttons for ikFetchData
-for key, value in fetch_data_buttons.items():
-    button = InlineKeyboardButton(text=value, callback_data=key)
-    ikFetchData.insert(button)
-
-# Create buttons for ikBenz
-for key, value in benz_buttons.items():
-    button = InlineKeyboardButton(text=value, callback_data=key)
-    ikBenz.insert(button)
-
-def isfloat(num):
-    try:
-        float(num)
-        return True
-    except ValueError:
-        return False
-
-
-
-
-#
-# ----- States Setup ----- #
-#
-class Expense(StatesGroup):
-    category = State()
-    subcategory = State()
-    price = State()
-    date = State()
-    description = State()
-
-class Income(StatesGroup):
-    date = State()
-    price = State()
-    description = State()
-
-class FetchFilters(StatesGroup):
-    date = State()
-    filter = State()
-    category = State()
-    subcategory = State()
-
-class Fill(StatesGroup):
-    price = State()
-    diesel = State()
-    date = State()
-
-
-
-
+ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain= keyboardFactory.get_default_keyboards()
 
 # /Start and /Help
 @dp.message_handler(commands=['updateJson'])
@@ -206,8 +65,6 @@ async def welcome(message: types.Message):
     messageID = message.message_id
     
     await message.answer("Hola, bienvenido a tu gestor de portfolio!", reply_markup=ikMain)
-    # sheetsManager.getMonthIncomes(mode, chatID, "22/05/2023")
-
 
 
 # Main Menu
@@ -833,7 +690,7 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
                                                 messageID,
                                                 reply_markup=ikMain)
 
-# , state=FetchFilters.subcategory
+
 @dp.callback_query_handler(lambda text: str(text.data).split('#')[0] == '/subcategorySelection', state=FetchFilters.subcategory)
 async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FSMContext):
 
@@ -935,7 +792,7 @@ async def inline_kb_answer_callback_handler(call, state: FSMContext):
 # Cancel Button (Not in use)
 @dp.callback_query_handler(text = ["cancel"], state=FetchFilters)
 async def cancelButton(call: types.CallbackQuery, state: FSMContext):
-    await state.finish()    
+    await state.finish()
     
     chatID = call.message.chat.id
     messageID = call.message.message_id
@@ -954,19 +811,3 @@ async def cancelButton(call: types.CallbackQuery, state: FSMContext):
 
 
 # --------------- END FETCH --------------- #
-
-
-
-
-
-
-# ------- AUX FUNCS -----  #
-
-
-
-
-
-
-
-if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)

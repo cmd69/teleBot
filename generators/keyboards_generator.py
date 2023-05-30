@@ -9,6 +9,58 @@ import math
 class KeyboardsGenerator:
     def __init__(self, users_manager) -> None:
         self.users_manager = users_manager
+        self.portfolio_buttons = {
+            "income": "Ingreso",
+            "expense": "Gasto",
+            "fetch": "Consultar",
+            "deleteExpense": "Eliminar Gasto",
+            "back": "Atras ↩️"
+        }
+        self.benz_buttons = {
+            "ride": "Nuevo Recorrido",
+            "fill": "Llenar Depósito",
+            "fetchBenz": "Consultar",
+            "back": "Atras ↩️"
+        }
+        self.fetch_data_buttons = {
+            "general": "General",
+            "currMonth": "Este Mes",
+            "lastMonth": "Mes Pasado",
+            "customMonth": "Otro Mes",
+            "back": "Atras ↩️"
+        }
+
+
+    def get_default_keyboards(self):
+        ikPortfolio = InlineKeyboardMarkup(row_width=3)
+        ikFetchData = InlineKeyboardMarkup(row_width=3)
+        ikBenz = InlineKeyboardMarkup(row_width=3)
+        mkDescription = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(KeyboardButton('Null'), KeyboardButton('Cancel❌'))
+        ikCancel = InlineKeyboardMarkup().add(InlineKeyboardButton(text="Cancel", callback_data="cancel"))
+        ikNumeric = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add("1€", "2€", "5€", "10€", "20€", "50€", KeyboardButton('Cancel❌'))
+        ikMain = InlineKeyboardMarkup().add(
+           InlineKeyboardButton(text="Portfolio 📊", callback_data="portfolio"),
+           InlineKeyboardButton(text="Benz 🚓", callback_data="benz")
+        )
+
+        for key, value in self.portfolio_buttons.items():
+            button = InlineKeyboardButton(text=value, callback_data=key)
+            ikPortfolio.insert(button)
+
+        # Create buttons for ikFetchData
+        for key, value in self.fetch_data_buttons.items():
+            button = InlineKeyboardButton(text=value, callback_data=key)
+            ikFetchData.insert(button)
+
+        # Create buttons for ikBenz
+        for key, value in self.benz_buttons.items():
+            button = InlineKeyboardButton(text=value, callback_data=key)
+            ikBenz.insert(button)
+
+        return ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain
+
+
+
 
     # Create any paginator
     def paginatorFactory(self, elements, page, gridSize, footerCommand, callbackCommand, expenses):
@@ -60,6 +112,7 @@ class KeyboardsGenerator:
         
         ikCategories.add(KeyboardButton('Cancel❌'))
         return ikCategories
+
 
     # Creates Markup or Inline Keyboard. Callback Arg only for
     # Inline Keyboards
