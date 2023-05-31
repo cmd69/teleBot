@@ -58,6 +58,11 @@ class DBManager:
             )
         return []
 
+    def get_incomes(self, chatID, consult):
+        if self.users_manager.user_json_on(chatID):
+            return self.json_manager.get_incomes_by_month(chatID, consult['date'])
+        return []
+
     def get_all_expenses(self, chatID):
         if self.users_manager.user_json_on(chatID):
             return self.json_manager.get_all_expenses(chatID)

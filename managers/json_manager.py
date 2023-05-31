@@ -184,6 +184,22 @@ class JsonManager:
 
         return []
 
+    def get_incomes_by_month(self, chatID, date):
+        expenses = self.load_json(self._get_filename(chatID))
+        
+        date = datetime.datetime.strptime(date, '%d/%m/%Y')
+        year = date.year
+        month = date.month
+
+        for y in expenses['years']:
+            if y['year'] == year:
+                for m in y['months']:
+                    if m['month'] == month:
+                        return m['income']
+                break
+
+        return []
+
     def get_all_expenses(self, chatID):
         return self.load_json(self._get_filename(chatID))
 
