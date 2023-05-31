@@ -82,7 +82,7 @@ class SheetsManager:
                     valueInputOption="USER_ENTERED",
                     # insertDataOption="INSERT_ROWS",
                     body={"values":expense}).execute()
-            print('Nueva transacción: ' + self.users_manager.get_user_name(self.mode, chatID) + " --> " + str(expense))
+            print('Nueva transacción: ' + self.users_manager.get_user_name(chatID) + " --> " + str(expense))
             return True
 
         except HttpError as error:
