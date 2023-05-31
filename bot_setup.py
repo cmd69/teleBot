@@ -19,4 +19,4 @@ def setup_bot(app):
     keyboardFactory = KeyboardsGenerator(usersManager)
     tablesFactory = TableGenerator(usersManager)
 
-    return bot, dp, dbManager, usersManager, keyboardFactory, tablesFactory
+    return bot, dp, dbManager, keyboardFactory, tablesFactory
