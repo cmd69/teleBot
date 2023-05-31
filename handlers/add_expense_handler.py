@@ -22,7 +22,6 @@ ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain = k
 @dp.callback_query_handler(text = ["expense"])
 async def newExpense(call: types.CallbackQuery):
 
-
     if (dbManager.user_exists(call.message.chat.id)):
         await Expense.category.set()
         await call.message.answer("Introduce la categoría", reply_markup=keyboardFactory.getCategoriesKeyboard(call.message.chat.id))    

@@ -75,7 +75,6 @@ class KeyboardsGenerator:
             data_pattern='/'+ footerCommand + '#{page}'
         )
         
-
         for i in range((page-1)*gridSize, page*gridSize, gridSize):
             list = []
 
