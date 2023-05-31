@@ -62,8 +62,10 @@ class KeyboardsGenerator:
 
 
     # Create any paginator
-    def paginatorFactory(self, elements, page, gridSize, footerCommand, callbackCommand, expenses):
+    def paginatorFactory(self, chatID, page, gridSize, footerCommand, callbackCommand, expenses):
         
+        elements = self.users_manager.get_user_categories(chatID)
+
         size = len(elements)
         if (not expenses): size+=1
 
