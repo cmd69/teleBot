@@ -1,5 +1,4 @@
 # Local
-from managers.users_manager import UsersManager
 from managers.json_manager import JsonManager
 from managers.sheets_manager import SheetsManager
 
@@ -8,14 +7,17 @@ import datetime
 
 
 class DBManager:
-    def __init__(self, mode):
+    def __init__(self, users_manager, mode):
         self.mode = mode
-        self.users_manager = UsersManager(self.mode)
+        self.users_manager = users_manager
         self.json_manager = JsonManager(self.mode, self.users_manager)
         self.sheets_manager = SheetsManager(self.mode, self.users_manager)
 
     def get_users_manager(self):
         return self.users_manager
+
+    def set_users_manager(self, users_manager):
+        self.users_manager = users_manager
 
     def user_exists(self, chatID):
         return self.users_manager.user_exists(chatID)

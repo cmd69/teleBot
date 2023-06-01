@@ -1,7 +1,9 @@
 # Local Imports
+from managers.users_manager import UsersManager
 from managers.db_manager import DBManager
 from generators.tables_generator import TableGenerator
 from generators.keyboards_generator import KeyboardsGenerator
+
 
 # Libraries
 from aiogram import Bot, Dispatcher
@@ -14,8 +16,8 @@ def setup_bot(app):
     storage = MemoryStorage()  # external storage is supported!
     dp = Dispatcher(bot, storage=storage)
 
-    dbManager = DBManager(app.config["MODE"])
-    usersManager = dbManager.get_users_manager()
+    usersManager = UsersManager(app.config["USERS_DB_PATH"])
+    dbManager = DBManager(usersManager, app.config["MODE"])
     keyboardFactory = KeyboardsGenerator(usersManager)
     tablesFactory = TableGenerator(usersManager)
 

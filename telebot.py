@@ -1,7 +1,7 @@
 from aiogram import executor
 
 # Local Imports
-from app import setup_flask
+from app import setup_flask, run_flask
 from bot_setup import setup_bot
 
 
@@ -12,6 +12,11 @@ app = setup_flask()
 # Setup Bot
 bot, dp, dbManager, keyboardFactory, tablesFactory = setup_bot(app)
 
+run_flask(app)
+
+@app.route('/test', methods=['GET'])
+def handle_payload():
+    return 'test'
 
 if __name__ == "__main__":
     

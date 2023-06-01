@@ -1,5 +1,4 @@
 # Local
-from managers.users_manager import UsersManager
 from utils import DecimalEncoder
 
 # Libraries
@@ -204,8 +203,7 @@ class JsonManager:
         return self.load_json(self._get_filename(chatID))
 
     def _get_filename(self, chatID):
-        users_manager = UsersManager(self.mode)
-        return users_manager.get_user_expenses_file(chatID)
+        return self.users_manager.get_user_expenses_file(chatID)
 
     def _save_expenses(self, chatID, expenses):
         
