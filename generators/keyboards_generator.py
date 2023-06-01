@@ -42,6 +42,11 @@ class KeyboardsGenerator:
            InlineKeyboardButton(text="Benz 🚓", callback_data="benz")
         )
 
+        ikGuest = InlineKeyboardMarkup().add(
+           InlineKeyboardButton(text="Comenzar de cero :)", callback_data="new_guest"),
+           InlineKeyboardButton(text="Probar demo", callback_data="new_demo")
+        )
+
         for key, value in self.portfolio_buttons.items():
             button = InlineKeyboardButton(text=value, callback_data=key)
             ikPortfolio.insert(button)
@@ -56,7 +61,7 @@ class KeyboardsGenerator:
             button = InlineKeyboardButton(text=value, callback_data=key)
             ikBenz.insert(button)
 
-        return ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain
+        return ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ikGuest
 
 
 

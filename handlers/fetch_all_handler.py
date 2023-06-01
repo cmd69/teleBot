@@ -10,8 +10,8 @@ from telebot import dp, bot, dbManager, keyboardFactory, tablesFactory
 
 
 # ----- Keyboards Setup ----- #
-ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain = keyboardFactory.get_default_keyboards()
-
+# ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain = keyboardFactory.get_default_keyboards()
+from handlers.main_handler import ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ikGuest
 
 @dp.callback_query_handler(text = ["general"])
 async def newExpense(call: types.CallbackQuery):

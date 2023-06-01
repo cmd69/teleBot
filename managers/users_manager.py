@@ -15,6 +15,11 @@ class UsersManager:
             data = json.load(f)
         return data
 
+    def create_new_user(self, new_user):
+        
+        pass
+
+
     def user_json_on(self, chatID):
         try:
             data = self.load_json(self.json_file)

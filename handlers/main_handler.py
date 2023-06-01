@@ -1,30 +1,15 @@
-# calendar
-from telegram_bot_calendar import DetailedTelegramCalendar, MonthTelegramCalendar, LSTEP
-
 # aiogram
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher import FSMContext
-from aiogram.types import ParseMode
-import aiogram.utils.markdown as md
 from aiogram import types
 
-
 # Local Imports
-from telebot import dp, bot, dbManager, keyboardFactory, tablesFactory
-from states import Expense, Income, FetchFilters
-from utils import isfloat
-
-
-# others
-import dateutil.relativedelta
-import datetime
+from telebot import dp, bot, dbManager, keyboardFactory
 
 
 #
 # ----- Keyboards Setup ----- #
 #
 
-ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain= keyboardFactory.get_default_keyboards()
+ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ikGuest = keyboardFactory.get_default_keyboards()
 
 # /Start and /Help
 @dp.message_handler(commands=['updateJson'])
@@ -59,8 +44,11 @@ async def welcome(message: types.Message):
     
     chatID = message.chat.id
     messageID = message.message_id
-    
-    await message.answer("Hola, bienvenido a tu gestor de portfolio!", reply_markup=ikMain)
+    if (dbManager.user_exists(chatID)):
+        await message.answer("Hola, bienvenido a tu gestor de portfolio!", reply_markup=ikMain)
+    else:
+        await message.answer("Hola, bienvenido a tu gestor de portfolio! Parece que eres nuevo" +
+            "pero no te preocupes, porque puedes comenzar a usar la app sin registrarte!", reply_markup=ikGuest)
 
 
 # Main Menu
