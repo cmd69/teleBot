@@ -146,7 +146,7 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
         incomes = dbManager.get_incomes(chatID, consult)
         table = tablesFactory.generate_month_recap(consult, expenses, incomes)
         
-        await bot.edit_message_text(f'<pre>GASTOS DE {monthStr.upper()}</pre> <pre>{table}</pre>',
+        await bot.edit_message_text(f'<pre>RESUMEN DE {monthStr.upper()}</pre> <pre>{table}</pre>',
                                         chatID,
                                         messageID,
                                         parse_mode=ParseMode.HTML)
@@ -205,7 +205,7 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
             incomes = dbManager.get_incomes(chatID, consult)
             table = tablesFactory.generate_month_recap(consult, expenses, incomes)
 
-            await bot.edit_message_text(f'<pre>GASTOS DE {monthStr.upper()}</pre> <pre>{table}</pre>',
+            await bot.edit_message_text(f'<pre>RESUMEN DE {monthStr.upper()}</pre> <pre>{table}</pre>',
                                             chatID,
                                             messageID,
                                             parse_mode=ParseMode.HTML)
@@ -249,7 +249,7 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
         table = tablesFactory.generate_month_recap(consult, expenses, incomes)
 
 
-        await bot.edit_message_text(f'<pre>GASTOS DE {monthStr.upper()}</pre> <pre>{table}</pre>',
+        await bot.edit_message_text(f'<pre>RESUMEN DE {monthStr.upper()}</pre> <pre>{table}</pre>',
                                         chatID,
                                         messageID,
                                         parse_mode=ParseMode.HTML)
