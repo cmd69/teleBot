@@ -9,8 +9,6 @@ load_dotenv()
 def setup_flask():
     app = Flask(__name__)
     mode = os.environ.get('TELEBOT_ENV', 'dev')  # Default to development mode if not specified
-    c = os.environ.get('PROD_SETTINGS_FILE')
-    print(c)
 
     if mode == 'prod':
         app.config.from_pyfile(os.environ.get('PROD_SETTINGS_FILE'))
@@ -21,9 +19,10 @@ def setup_flask():
 
 
 def run_flask(app):
-    if app.config.get('DEBUG', False):
-        flask_thread = threading.Thread(target=app.run, kwargs={'debug': True, 'use_reloader': False, 'port': 8080, 'host': '192.168.1.148'})
+    ip = app.config["FLASK_IP"]
+    if ip == 'prod':
+        flask_thread = threading.Thread(target=app.run, kwargs={'debug': True, 'use_reloader': False, 'port': 8080, 'host': ip})
     else:
-        flask_thread = threading.Thread(target=app.run, kwargs={'debug': False, 'use_reloader': False, 'port': 8080, 'host': '192.168.1.148'})
+        flask_thread = threading.Thread(target=app.run, kwargs={'debug': False, 'use_reloader': False, 'port': 8080, 'host': ip})
 
     flask_thread.start()

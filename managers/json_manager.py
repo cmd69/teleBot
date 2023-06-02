@@ -20,6 +20,17 @@ class JsonManager:
             data = json.load(f)
         return data
 
+    def delete_all(self, chatID):
+        filename = self._get_filename(chatID)
+        data = {
+            "years": []
+        }
+        with open(filename, "r+") as file:
+            file.seek(0)
+            json.dump(data, file, indent=4, cls=DecimalEncoder)
+            file.truncate()    
+        return True
+
     def add_expense(self, chatID, expense):
         
         expenses = self.load_json(self._get_filename(chatID))
@@ -63,7 +74,6 @@ class JsonManager:
         self._save_expenses(chatID, expenses)
 
     def add_income(self, chatID, income):
-        
         expenses = self.load_json(self._get_filename(chatID))
         date = datetime.datetime.strptime(income['date'], '%d/%m/%Y')
         year = date.year
@@ -162,6 +172,95 @@ class JsonManager:
                         break
 
         return self._save_expenses(chatID, data)
+
+    def set_month_expenses(self, chatID, month_expenses):
+        expenses = self.load_json(self._get_filename(chatID))
+        if not month_expenses: return False
+        
+        date = datetime.datetime.strptime(month_expenses[0]['date'], '%d/%m/%Y')
+        year = date.year
+        month = date.month
+
+        for y in expenses['years']:
+            if y['year'] == year:
+                for m in y['months']:
+                    if m['month'] == month:
+                        m['expenses'] = month_expenses
+                        m['totalExpenses'] = decimal.Decimal(sum(expense['price'] for expense in month_expenses))
+                        y['totalExpenses'] = sum(decimal.Decimal(month['totalExpenses']) for month in y['months'])
+                        break
+                else:
+                    y['months'].append({
+                        'month': month,
+                        'expenses': month_expenses,
+                        'income': [],
+                        'totalExpenses': decimal.Decimal(sum(expense['price'] for expense in month_expenses)),
+                        'totalIncome': decimal.Decimal('0')
+                    })
+                    y['totalExpenses'] = sum(decimal.Decimal(month['totalExpenses']) for month in y['months'])
+                break
+        else:
+            expenses['years'].append({
+                'year': year,
+                'months': [{
+                    'month': month,
+                    'expenses': month_expenses,
+                    'income': [],
+                    'totalExpenses': decimal.Decimal(sum(expense['price'] for expense in month_expenses)),
+                    'totalIncome': decimal.Decimal('0')
+                }],
+                'totalExpenses': decimal.Decimal(sum(expense['price'] for expense in month_expenses)),
+                'totalIncome': decimal.Decimal('0'),
+                'savings': decimal.Decimal('0')
+            })
+
+
+        # Save the updated expenses
+        return self._save_expenses(chatID, expenses)
+                        
+    def set_month_incomes(self, chatID, month_incomes):
+        if not month_incomes: return False
+        expenses = self.load_json(self._get_filename(chatID))
+        
+        date = datetime.datetime.strptime(month_incomes[0]['date'], '%d/%m/%Y')
+        year = date.year
+        month = date.month
+        
+        for y in expenses['years']:
+            if y['year'] == year:
+                for m in y['months']:
+                    if m['month'] == month:
+                        m['income'] = month_incomes
+                        m['totalIncome'] = decimal.Decimal(sum(income['price'] for income in month_incomes))
+                        y['totalIncome'] = sum(decimal.Decimal(month['totalIncome']) for month in y['months'])
+                        break
+                else:
+                    y['months'].append({
+                        'month': month,
+                        'expenses': [],
+                        'income': month_incomes,
+                        'totalExpenses': decimal.Decimal('0'),
+                        'totalIncome': decimal.Decimal(sum(income['price'] for income in month_incomes))
+                    })
+                    y['totalIncome'] = sum(decimal.Decimal(month['totalIncome']) for month in y['months'])
+                break
+        else:
+            expenses['years'].append({
+                'year': year,
+                'months': [{
+                    'month': month,
+                    'expenses': [],
+                    'income': month_incomes,
+                    'totalExpenses': decimal.Decimal('0'),
+                    'totalIncome': decimal.Decimal(sum(income['price'] for income in month_incomes))
+                }],
+                'totalExpenses': decimal.Decimal('0'),
+                'totalIncome': decimal.Decimal(sum(income['price'] for income in month_incomes)),
+                'savings': decimal.Decimal('0')
+            })
+
+        # Save the updated expenses
+        return self._save_expenses(chatID, expenses)
 
     def set_expenses(self, chatID, expenses):
         self._save_expenses(chatID, expenses)

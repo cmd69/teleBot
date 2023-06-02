@@ -1,4 +1,5 @@
 import os
+import re
 import datetime
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -41,7 +42,6 @@ class SheetsManager:
             self.users_portfolios[chatID] = portfolio
         
         return self.users_portfolios[chatID]
-
 
 
     def _get_portfolio_sheet(self, chatID):
@@ -146,8 +146,32 @@ class SheetsManager:
         incomes_sheet = self._get_portfolio_sheet(chatID)
         pass
 
+    def get_sheets_names(self, chatID):
+       
+        try:
+            sheets = self._load_user_portfolio(chatID).get(
+                        spreadsheetId=self._get_portfolio_sheet(chatID)
+                    ).execute()['sheets']
+            sheet_names = [sheet['properties']['title'] for sheet in sheets]
+            filtered_list = [string for string in sheet_names if re.search(r"\D\d{2}$", string)]
+            
+            converted_dates = []
+            for date in filtered_list:
+                month = date[:3]
+                year = '20' + date[-2:]
+                date_str = '01/' + month + '/' + year
+                converted_date = datetime.datetime.strptime(date_str, '%d/%b/%Y').strftime('%d/%m/%Y')
+                converted_dates.append(converted_date)
+            
+            return converted_dates
+
+        except HttpError as error:
+            print(str(error))
+            return False
+        pass
+
     def get_all_expenses(self, chatID):
-        # expenses_sheet = self._get_portfolio_sheet()
+        resheets_months = self._get_sheets_names(chatID)
         pass
 
     def get_expenses_by_month(self, chatID, date):
@@ -167,24 +191,21 @@ class SheetsManager:
         
         return expenses
 
-    def get_incomes_by_month(self, chatId, date):
-        # portfolio = loadPortfolio(chatID)
-        # credentials, sheetsFile = usersManager.getUserData(mode, chatID)
-
-        # try:
-        #         dateClass = datetime.datetime.strptime(date, "%d/%m/%Y")
-        # except:
-        #         print("sheetsManager.getMonthExpenses: strptime except")
-        #         dateClass = date
+    def get_incomes_by_month(self, chatID, date):
+        try:
+            dateClass = datetime.datetime.strptime(date, "%d/%m/%Y")
+        except:
+            print("sheetsManager.getMonthExpenses: strptime except")
+            dateClass = date
         
-        # sheet = months[str(dateClass.month)] + str(dateClass.year)[-2:] + "!S10:U"
+        sheet = months[str(dateClass.month)] + str(dateClass.year)[-2:] + "!S10:U"
         
-        # result = portfolio.values().get(spreadsheetId=sheetsFile,
-        #                         valueRenderOption="UNFORMATTED_VALUE",
-        #                         range=sheet).execute()
+        result = self._load_user_portfolio(chatID).values().get(spreadsheetId=self._get_portfolio_sheet(chatID),
+                                valueRenderOption="UNFORMATTED_VALUE",
+                                range=sheet).execute()
         
-        # expenses = result.get('values', [])
-        # print(expenses)
-        # return expenses
+        expenses = result.get('values', [])
+        
+        return expenses
 
         pass
