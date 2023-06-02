@@ -153,16 +153,20 @@ class TableGenerator:
                     else:
                         categories[category] = {'total': price}
 
-        
         # Create a pretty table
         table = pt.PrettyTable(['Category', '€', '%'])
 
         # Calculate average expense and percentage for each category
         for category, data in categories.items():
-            average_expense = data['total'] / number_months
-            expense_percentage = (average_expense / average_income) * 100 
+            average_expense = 0
+            expense_percentage = 0
+            if number_months != 0:
+                average_expense = data['total'] / number_months
+            if average_income != 0:
+                expense_percentage = (average_expense / average_income) * 100
             table.add_row([category, str(round(average_expense, 2)) + " €", str(round(expense_percentage, 1)) + " %"])
-        
+
         recap_message += str(table)
-        
+
         return recap_message
+
