@@ -17,7 +17,7 @@ class TableGenerator:
 
         # Incomes table
         incomes_table = pt.PrettyTable(['📅', '🔰', '💸'])
-        incomes_table.field_names = ["Date 📅", "Descript. 🔰", "Price 💸"]
+        incomes_table.field_names = ["Date 📅", "Desc. 🔰", "Price 💸"]
         incomes_table.align = "l"
         incomes_table.padding_width = 1
         incomes_table.format = True
