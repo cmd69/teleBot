@@ -50,7 +50,10 @@ async def welcome(message: types.Message):
 @dp.message_handler(commands=['loadSheets'])
 async def welcome(message: types.Message):
     chatID = message.chat.id
-    print(dbManager.load_expenses_from_sheets_to_json(chatID))
+    if dbManager.load_expenses_from_sheets_to_json(chatID):
+        await message.answer("Gastos cargados de Sheets Correctamente!", reply_markup=ikMain)
+    else:
+        await message.answer("Parece que ha habido un error...", reply_markup=ikMain)
 
     
 
