@@ -78,7 +78,7 @@ class TableGenerator:
         remaining = total_income - total_expenses
 
         # Create a string with the formatted expenses_table
-        formatted_table = f"\n\n\nINGRESOS:\n{incomes_table}\n\nGASTOS\n\n{expenses_table}\n\n \nIncome: {round(total_income,2)} € \nExpenses: {round(total_expenses,2)} €\nSaved: {round(remaining,2)} €"
+        formatted_table = f"\n\n\nINGRESOS:\n{incomes_table}\n\nGASTOS\n{expenses_table}\n\n \nIncome: {round(total_income,2)} € \nExpenses: {round(total_expenses,2)} €\nSaved: {round(remaining,2)} €"
         
         return formatted_table
 
