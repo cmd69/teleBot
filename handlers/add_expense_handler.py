@@ -172,7 +172,7 @@ async def get_price(message: types.Message, state: FSMContext):
                 'date': data['date'],
                 'category': data['category'],
                 'subcategory': data['subcategory'],
-                'price': int(data['price']),
+                'price': float(data['price']),
                 'description': data['description']
             }
 
