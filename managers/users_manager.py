@@ -4,13 +4,9 @@ import json
 class UsersManager:
     def __init__(self, db_path):
         self.db_path = db_path
-        # print(self.db_path)
         self.users_data = self.load_json(self.db_path)
-        print(self.users_data)
 
     def load_json(self, file_path):
-        # print("BELOW")
-        # print(file_path)
         with open(file_path) as f:
             data = json.load(f)
         return data

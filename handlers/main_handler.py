@@ -12,7 +12,7 @@ from telebot import dp, bot, dbManager, keyboardFactory
 ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ikGuest = keyboardFactory.get_default_keyboards()
 
 # /Start and /Help
-@dp.message_handler(commands=['updateJson'])
+@dp.message_handler(commands=['test'])
 async def welcome(message: types.Message):
     chatID = message.chat.id
     messageID = message.message_id
@@ -30,12 +30,28 @@ async def welcome(message: types.Message):
         "price": 100000,
         "description": "SnickersChuches"
     }
+    consult = {
+        'date': "30/05/2023",
+        'category': "Todas",
+        'subcategory': None
+    }
     
     # c = dbManager.get_expenses_from_sheets("01/05/2023")
-    dbManager.add_expense(chatID, expense)
-    dbManager.add_income(chatID, income)
-    dbManager.delete_income(chatID, income)
-    dbManager.delete_expense(chatID, expense)
+    # dbManager.add_expense(chatID, expense)
+    # dbManager.add_income(chatID, income)
+    # dbManager.delete_income(chatID, income)
+    # dbManager.delete_expense(chatID, expense)
+    # dbManager.test(chatID)
+    # print(dbManager.load_expenses_from_sheets_to_json(chatID))
+
+
+
+# /Start and /Help
+@dp.message_handler(commands=['loadSheets'])
+async def welcome(message: types.Message):
+    chatID = message.chat.id
+    print(dbManager.load_expenses_from_sheets_to_json(chatID))
+
     
 
 # /Start and /Help

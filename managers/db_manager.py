@@ -4,6 +4,7 @@ from managers.sheets_manager import SheetsManager
 
 # Libraries
 import datetime
+import time
 
 
 class DBManager:
@@ -12,6 +13,9 @@ class DBManager:
         self.users_manager = users_manager
         self.json_manager = JsonManager(self.mode, self.users_manager)
         self.sheets_manager = SheetsManager(self.mode, self.users_manager)
+
+    def test(self, chatID):
+        self.sheets_manager.get_sheets_names(chatID)
 
     def get_users_manager(self):
         return self.users_manager
@@ -48,8 +52,33 @@ class DBManager:
 
     def load_expenses_from_sheets_to_json(self, chatID,):
         if self.users_manager.user_json_on(chatID):
-            expenses = self.sheets_manager.get_all_expenses(chatID)
-            self.json_manager.set_expenses(expenses)
+            dates_to_load = self.sheets_manager.get_sheets_names(chatID)
+            
+            self.json_manager.delete_all(chatID)
+        
+            try:
+                for date in dates_to_load:
+
+                    formatted_expenses = self._format_sheets_to_json(
+                        self.sheets_manager.get_expenses_by_month(chatID, date)
+                    )
+                    
+                    self.json_manager.set_month_expenses(chatID, formatted_expenses)
+                    
+                    formatted_incomes = self._format_sheets_income_to_json(
+                        self.sheets_manager.get_incomes_by_month(chatID, date)
+                    )
+                    
+                    self.json_manager.set_month_incomes(chatID, formatted_incomes)
+
+                return True
+            except Exception as e:
+                print("An error occurred transfering sheets to json:", str(e))
+                return False
+
+                
+                
+                
 
     def get_expenses(self, chatID, consult):
         if self.users_manager.user_json_on(chatID):
@@ -71,6 +100,7 @@ class DBManager:
         return []
 
     def get_expenses_from_sheets(self, chatID, consult):
+        
         if self.users_manager.user_sheets_on(chatID):    
             
             formatted_expenses = self._format_sheets_to_json(
@@ -145,6 +175,35 @@ class DBManager:
                     "subcategory": item[2],
                     "price": item[3],
                     "description": item[4]
+                }
+                json_objects.append(json_object)
+        
+            return json_objects
+        
+        except:
+            return []
+    
+    # TODO: merge with previous method
+    def _format_sheets_income_to_json(self, incomes):
+        
+        def convert_xls_datetime(xls_date):
+            return (datetime.datetime(1899, 12, 30)
+                + datetime.timedelta(days=xls_date))
+    
+        json_objects = []
+        try:
+            for item in incomes:
+                
+                date = item[0]
+                if type(date) == int:
+                    date = convert_xls_datetime(date)
+                    date = datetime.datetime.strftime(date, "%d/%m/%Y")
+                    date = str(date)
+
+                json_object = {
+                    "date": date,
+                    "price": item[1],
+                    "description": item[2]
                 }
                 json_objects.append(json_object)
         

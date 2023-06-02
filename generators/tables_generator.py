@@ -82,86 +82,87 @@ class TableGenerator:
         
         return formatted_table
 
-    
-    def generate_general_report(self, expenses):
 
+    def generate_general_report(self, expenses):
         recap_message = "💰 Budget Recap 💰\n\n"
         
         years = expenses["years"]
-        total_income = 0
-        total_expenses = 0
-        total_saved = 0
         total_income_count = 0
         total_expenses_count = 0
-        
+
+        number_months = 0
+
         for year_data in years:
             months = year_data["months"]
             
             for month_data in months:
-                expenses = month_data["expenses"]
-                income = month_data["income"]
                 
-                if income:
-                    total_income += sum(entry['price'] for entry in income)
-                    total_income_count += len(income)
+                expenses_list = month_data["expenses"]
+                income_list = month_data["income"]
                 
-                if expenses:
-                    total_expenses += sum(entry['price'] for entry in expenses)
-                    total_expenses_count += len(expenses)
-        
+                if income_list or expenses_list:
+                    number_months += 1
+
+                if income_list:
+                    total_income_count += month_data["totalIncome"]
+                
+                if expenses_list:
+                    total_expenses_count += month_data["totalExpenses"]
+
+
+        # Calculate average income
+        if total_income_count > 0 and number_months > 0:
+            average_income = total_income_count / number_months
+            recap_message += f"💵 Avg. Income: €{average_income:.2f}\n"
+        else:
+            average_income = 0
+            recap_message += "💵 Avg. Income: €0.00\n"
 
         # Calculate average expenses
-        if total_expenses_count > 0:
-            average_expenses = total_expenses / total_expenses_count
-            percentage_of_expenses = (average_expenses / total_income) * 100
-            recap_message += f"💸 Avg. Expenses: €{average_expenses:.2f} ({percentage_of_expenses:.2f}%)\n"
-        
-        
-        if total_income_count > 0:
-            # Calculate average income    
-            average_income = total_income / total_income_count
-            recap_message += f"💵 Avg. Income: €{average_income:.2f}\n"
-
-            # Calculate average saved
-            average_saved = average_income - average_expenses
-            recap_message += f"💰 Avg. Saved: €{average_saved:.2f} ({(average_saved / total_income) * 100:.2f}%)\n\n"
-        else:
-            recap_message += f"💵 Avg. Income: €{total_income_count:.2f}\n"
-            recap_message += f"💰 Avg. Saved: €{total_income_count:.2f} ({(total_income_count) * 100:.2f}%)\n\n"
-        
-        
-        
-
-        
-        # Calculate average category expenses
-        all_expenses = [entry for year_data in years for month_data in year_data["months"] for entry in month_data["expenses"]]
-        categories = {}
-        total_expenses = 0
-        
-        for expense in all_expenses:
-            category = expense["category"]
-            price = expense["price"]
-            total_expenses += price
-            
-            if category in categories:
-                categories[category]["total"] += price
-                categories[category]["count"] += 1
+        if total_expenses_count > 0 and number_months > 0:
+            average_expenses = total_expenses_count / number_months
+            if total_income_count > 0:
+                percentage_of_expenses = (average_expenses / average_income) * 100
             else:
-                categories[category] = {"total": price, "count": 1}
+                percentage_of_expenses = 0
+            recap_message += f"💸 Avg. Expenses: €{average_expenses:.2f} ({percentage_of_expenses:.2f}%)\n"
+        else:
+            average_expenses = 0
+            percentage_of_expenses = 0
+            recap_message += "💸 Avg. Expenses: €0.00 (0.00%)\n"
+
+        # Calculate average saved
+        average_saved = average_income - average_expenses
+        if total_income_count > 0:
+            recap_message += f"💰 Avg. Saved: €{average_saved:.2f} ({(average_saved / average_income) * 100:.2f}%)\n\n"
+        else:
+            recap_message += f"💰 Avg. Saved: €{average_saved:.2f} ({0 * 100:.2f}%)\n\n"
+
+
         
-        recap_message += "📊 Category Averages\n"
+        categories = {}  # Dictionary to store category-wise expenses
+
+        # Iterate over the years and months in the expenses JSON
+        for year in expenses['years']:
+            for month in year['months']:
+                for expense in month['expenses']:
+                    category = expense['category']
+                    price = expense['price']
+                    if category in categories:
+                        categories[category]['total'] += price
+                    else:
+                        categories[category] = {'total': price}
+
         
-        # Create the pretty table
-        table = pt.PrettyTable()
-        table.field_names = ["Category", "Avg (€)", "(%)"]
-        
+        # Create a pretty table
+        table = pt.PrettyTable(['Category', '€', '%'])
+
+        # Calculate average expense and percentage for each category
         for category, data in categories.items():
-            average_expense = data["total"] / data["count"]
-            percentage_of_expenses = (data["total"] / total_expenses) * 100
-            table.add_row([category, f"€{average_expense:.2f}", f"{percentage_of_expenses:.2f}"])
+            average_expense = data['total'] / number_months
+            expense_percentage = (average_expense / average_income) * 100 
+            table.add_row([category, str(round(average_expense, 2)) + " €", str(round(expense_percentage, 1)) + " %"])
         
         recap_message += str(table)
         
         return recap_message
-
-
