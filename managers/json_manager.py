@@ -7,9 +7,6 @@ import decimal
 import datetime
 
 
-
-
-
 class JsonManager:
     def __init__(self, mode, users_manager):
         self.mode = mode
