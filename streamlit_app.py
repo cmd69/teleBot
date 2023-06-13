@@ -5,7 +5,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from streamlit_elements import dashboard
 from telebot import chartsGenerator
-
+from streamlit.config import get_option
 
 
 def main():
@@ -17,7 +17,6 @@ def main():
     )
     st.title("Main Page")
     st.sidebar.success("Select a page")
-    
     
     categories_checkbox = chartsGenerator.generate_categories_checkbox(None)
 
