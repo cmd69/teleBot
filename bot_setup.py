@@ -3,6 +3,7 @@ from managers.users_manager import UsersManager
 from managers.db_manager import DBManager
 from generators.tables_generator import TableGenerator
 from generators.keyboards_generator import KeyboardsGenerator
+from generators.charts_generator import ChartsGenerator
 
 
 # Libraries
@@ -20,5 +21,6 @@ def setup_bot(app):
     dbManager = DBManager(usersManager, app.config["MODE"])
     keyboardFactory = KeyboardsGenerator(usersManager)
     tablesFactory = TableGenerator(usersManager)
+    chartsGenerator = ChartsGenerator(dbManager)
 
-    return bot, dp, dbManager, keyboardFactory, tablesFactory
+    return bot, dp, dbManager, keyboardFactory, tablesFactory, chartsGenerator

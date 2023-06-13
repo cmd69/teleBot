@@ -9,7 +9,6 @@ import datetime
 
 class JsonManager:
     def __init__(self, mode, users_manager):
-        self.mode = mode
         self.users_manager = users_manager
 
     def load_json(self, file_path):

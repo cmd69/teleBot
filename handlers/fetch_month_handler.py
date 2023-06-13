@@ -142,8 +142,8 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
             'category': "Todas",
             'subcategory': None
         }
-        expenses = dbManager.get_expenses(chatID, consult)
-        incomes = dbManager.get_incomes(chatID, consult)
+        expenses = dbManager.get_expenses_by_month(chatID, consult)
+        incomes = dbManager.get_incomes_by_month(chatID, consult)
         table = tablesFactory.generate_month_recap(consult, expenses, incomes)
         
         await bot.edit_message_text(f'<pre>RESUMEN DE {monthStr.upper()}</pre> <pre>{table}</pre>',
@@ -201,8 +201,8 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
                 'subcategory': None
             }
 
-            expenses = dbManager.get_expenses(chatID, consult)
-            incomes = dbManager.get_incomes(chatID, consult)
+            expenses = dbManager.get_expenses_by_month(chatID, consult)
+            incomes = dbManager.get_incomes_by_month(chatID, consult)
             table = tablesFactory.generate_month_recap(consult, expenses, incomes)
 
             await bot.edit_message_text(f'<pre>RESUMEN DE {monthStr.upper()}</pre> <pre>{table}</pre>',
@@ -244,8 +244,8 @@ async def inline_kb_answer_callback_handler(call: types.CallbackQuery, state: FS
             'subcategory': subcategory
         }
 
-        expenses = dbManager.get_expenses(chatID, consult)
-        incomes = dbManager.get_incomes(chatID, consult)
+        expenses = dbManager.get_expenses_by_month(chatID, consult)
+        incomes = dbManager.get_incomes_by_month(chatID, consult)
         table = tablesFactory.generate_month_recap(consult, expenses, incomes)
 
 
