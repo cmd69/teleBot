@@ -14,15 +14,12 @@ class DBManager:
         self.json_manager = JsonManager(self.mode, self.users_manager)
         self.sheets_manager = SheetsManager(self.mode, self.users_manager)
 
-    def test(self, chatID):
-        self.sheets_manager.get_sheets_names(chatID)
-
-    def get_users_manager(self):
-        return self.users_manager
-
     def set_users_manager(self, users_manager):
         self.users_manager = users_manager
-
+    
+    def get_users_manager(self):
+        return self.users_manager
+    
     def user_exists(self, chatID):
         return self.users_manager.user_exists(chatID)
 
@@ -50,7 +47,7 @@ class DBManager:
         if self.users_manager.user_sheets_on(chatID):
             self.sheets_manager.delete_income(chatID, income)
 
-    def load_expenses_from_sheets_to_json(self, chatID,):
+    def load_expenses_from_sheets_to_json(self, chatID):
         if self.users_manager.user_json_on(chatID):
             dates_to_load = self.sheets_manager.get_sheets_names(chatID)
             
@@ -76,11 +73,7 @@ class DBManager:
                 print("An error occurred transfering sheets to json:", str(e))
                 return False
 
-                
-                
-                
-
-    def get_expenses(self, chatID, consult):
+    def get_expenses_by_month(self, chatID, consult):
         if self.users_manager.user_json_on(chatID):
             return self._filter_expenses(
                 self.json_manager.get_expenses_by_month(chatID, consult['date']),
@@ -89,7 +82,7 @@ class DBManager:
             )
         return []
 
-    def get_incomes(self, chatID, consult):
+    def get_incomes_by_month(self, chatID, consult):
         if self.users_manager.user_json_on(chatID):
             return self.json_manager.get_incomes_by_month(chatID, consult['date'])
         return []
@@ -122,8 +115,6 @@ class DBManager:
                 consult['subcategory']
             )
         return []
-
-
 
     def _filter_expenses(self, expenses, category, subcategory):
         # round(float(m['totalIncome']),2), round(float(m['totalExpenses']),2)
