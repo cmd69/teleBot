@@ -13,14 +13,15 @@ bot, dp, dbManager, keyboardFactory, tablesFactory, chartsGenerator = setup_bot(
 
 
 def run_bot():
-
-    
     executor.start_polling(dp, skip_updates=True)
 
 
 def run_streamlit():
     app_path = "streamlit_app.py"
+    port = app_config["PORT"]
+    ip = app_config["IP"]
     subprocess.Popen(["streamlit", "run", app_path])
+    subprocess.Popen(["streamlit", "run", app_path, "--server.port", port, "--server.address", ip])
 
 
 if __name__ == "__main__":
@@ -29,14 +30,15 @@ if __name__ == "__main__":
     from handlers.add_income_handler import *
     from handlers.fetch_month_handler import *
     from handlers.fetch_all_handler import *
+    
+    # Bot initialization
     bot_process = Process(target=run_bot)
-    streamlit_process = Process(target=run_streamlit)
-
     bot_process.start()
+    
+    # Streamlit initialization
+    streamlit_process = Process(target=run_streamlit)
     streamlit_process.start()
 
     bot_process.join()
     streamlit_process.join()
-    
-    # Import handlers after creating the Dispatcher
     
