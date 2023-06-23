@@ -20,7 +20,7 @@ def run_streamlit():
     app_path = "streamlit_app.py"
     port = app_config["PORT"]
     ip = app_config["IP"]
-    subprocess.Popen(["streamlit", "run", app_path])
+    # subprocess.Popen(["streamlit", "run", app_path])
     subprocess.Popen(["streamlit", "run", app_path, "--server.port", port, "--server.address", ip])
 
 

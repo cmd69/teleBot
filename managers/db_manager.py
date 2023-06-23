@@ -19,6 +19,18 @@ class DBManager:
     
     def get_users_manager(self):
         return self.users_manager
+
+    # Streamlit links management
+    def get_link(self, chatID):
+        return self.users_manager.get_link(chatID)
+
+    def create_link(self, chatID):
+        return self.users_manager.create_link(chatID)
+
+    def get_chatID_from_token(self, token):
+        return self.users_manager.get_chatID_from_token(token)
+    # END streamlit links management
+
     
     def user_exists(self, chatID):
         return self.users_manager.user_exists(chatID)

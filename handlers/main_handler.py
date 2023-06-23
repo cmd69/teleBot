@@ -4,6 +4,8 @@ from aiogram import types
 # Local Imports
 from telebot import dp, bot, dbManager, keyboardFactory
 
+# Aux imports
+import os
 
 #
 # ----- Keyboards Setup ----- #
@@ -36,15 +38,7 @@ async def welcome(message: types.Message):
         'subcategory': None
     }
     
-    # c = dbManager.get_expenses_from_sheets("01/05/2023")
-    # dbManager.add_expense(chatID, expense)
-    # dbManager.add_income(chatID, income)
-    # dbManager.delete_income(chatID, income)
-    # dbManager.delete_expense(chatID, expense)
-    # dbManager.test(chatID)
-    # print(dbManager.load_expenses_from_sheets_to_json(chatID))
-
-
+    pass
 
 # /Start and /Help
 @dp.message_handler(commands=['loadSheets'])
