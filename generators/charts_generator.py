@@ -12,8 +12,13 @@ class ChartsGenerator:
     
 
     def _load_data(self, chatID=os.environ.get('ALTOKE_CHATID')):
+    # def _load_data(self, chatID):
         return self.db_manager.get_all_expenses(chatID)
     
+    
+    def _get_chatID_from_token(self, token):
+        return self.db_manager.get_chatID_from_token(token)
+
 
     # Extract expenses per category FOREACH CATEGORY
     # JSON ----> JSON
@@ -113,8 +118,13 @@ class ChartsGenerator:
         ]
 
 
-    def generate_expenses_piechart(self, chatID):
-        data = self._load_data()
+    def generate_expenses_piechart(self, token):
+        if (token == None):
+            data = self._load_data()
+        else:
+            chatID = self._get_chatID_from_token(token)
+            data = self._load_data(chatID)
+
         piechart_df = self._expenses_to_categories(data)
         piechart_data = self.df_to_piechart_json(piechart_df)
 
@@ -251,8 +261,13 @@ class ChartsGenerator:
                 )
 
 
-    def generate_general_linechart(self, chatID):
-        data = self._load_data()
+    def generate_general_linechart(self, token):
+        if (token == None):
+            data = self._load_data()
+        else:
+            chatID = self._get_chatID_from_token(token)
+            data = self._load_data(chatID)
+        
         linechart_df = self._expenses_to_general(data)
         linechart_data = self.df_to_linechart_json(linechart_df)
         
@@ -329,8 +344,13 @@ class ChartsGenerator:
             )
 
 
-    def generate_categories_checkbox(self, chatID):
-        data = self._load_data()
+    def generate_categories_checkbox(self, token):
+        if (token == None):
+            data = self._load_data()
+        else:
+            chatID = self._get_chatID_from_token(token)
+            data = self._load_data(chatID)
+        
         df_categories = self._expenses_to_categories(data)
         categories = df_categories['Category'].tolist()
 
