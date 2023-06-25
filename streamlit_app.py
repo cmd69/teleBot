@@ -13,8 +13,9 @@ def main():
         access_token = 0
     else:
         access_token = st.experimental_get_query_params().get("access_token")[0]
+        print(access_token)
 
-    
+    print(0)
     # PAGE CONFIG
     st.set_page_config(page_title="Portfolio Dashboard",
                     page_icon=":bar_chart:",
