@@ -71,8 +71,8 @@ def main():
         st.subheader("Bienvenido")
         st.sidebar.success("Select a page")
 
-    except:
-
+    except Exception as e:
+        print(e)
         image = Image.open('images/access_denied.png')
         st.image(image)
 
