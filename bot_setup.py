@@ -37,7 +37,7 @@ def setup_bot(app_config):
     storage = MemoryStorage()  # external storage is supported!
     dp = Dispatcher(bot, storage=storage)
 
-    usersManager = UsersManager(app_config["USERS_DB_PATH"])
+    usersManager = UsersManager(app_config["USERS_DB_PATH"], app_config["PORT"], app_config["IP"])
     dbManager = DBManager(usersManager, app_config["MODE"])
     keyboardFactory = KeyboardsGenerator(usersManager)
     tablesFactory = TableGenerator(usersManager)
