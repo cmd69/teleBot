@@ -349,7 +349,6 @@ class ChartsGenerator:
             data = self._load_data()
         else:
             chatID = self._get_chatID_from_token(token)
-            print(chatID)
             data = self._load_data(chatID)
         
         df_categories = self._expenses_to_categories(data)
