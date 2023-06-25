@@ -6,8 +6,10 @@ from utils import DecimalEncoder
 
 
 class UsersManager:
-    def __init__(self, db_path):
+    def __init__(self, db_path, port, ip):
         self.db_path = db_path
+        self.port = port
+        self.ip = ip
         self.users_data = self.load_json(self.db_path)
 
     def load_json(self, file_path):
@@ -22,7 +24,7 @@ class UsersManager:
     def get_link(self, chatID):
         try:
             data = self.users_data
-            link = "/?access_token=" + data['streamlit_keys'][str(chatID)]['token']
+            link = self.ip + ":" + self.port + "/?access_token=" + data['streamlit_keys'][str(chatID)]['token']
             return link
         except (FileNotFoundError, KeyError) as e:
             raise RuntimeError(f"Failed to retrieve user data for chat ID {chatID}: {e}")
