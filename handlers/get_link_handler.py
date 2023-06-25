@@ -10,6 +10,7 @@ ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ik
 @dp.message_handler(commands=['link'])
 async def welcome(message: types.Message):
     chatID = message.chat.id
+    await message.answer("Enviando link de acceso")
     
     link = dbManager.get_link(chatID)
     if dbManager.user_exists(chatID):
