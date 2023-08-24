@@ -1,4 +1,4 @@
-#README Software Project Telegram Expense Management Bot
+# Telegram expense manager bot
 
 Welcome to the documentation for the Telegram Expense Management Bot, a powerful tool designed to help users efficiently manage personal expenses, categorize transactions, and gain insights through visualizations. This document will provide you with an overview of the project's functionality, initialization process, project architecture, and how to use the bot effectively.
 
