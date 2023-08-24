@@ -1,58 +1,128 @@
-# Expense Tracker Telegram Bot
 
-Welcome to the Expense Tracker Telegram Bot repository! This project aims to provide a simple and convenient way to keep track of your expenses, allowing you to classify them by category and subcategory. It also integrates with Google Sheets to provide detailed charts and visualizations of your expenses.
+# 🇪🇸 **Gestor de Gastos en Telegram - Bot**
 
-## Table of Contents
-- [Introduction](#introduction)
-- [How It Works](#how-it-works)
-- [Getting Started](#getting-started)
-- [Contributing](#contributing)
-- [License](#license)
+¡Bienvenido a la documentación para el Bot de Gestión de Gastos en Telegram, una poderosa herramienta diseñada para ayudar a los usuarios a gestionar eficientemente sus gastos personales, categorizar transacciones y obtener información a través de visualizaciones. Este documento te proporcionará una descripción general de las funcionalidades del proyecto, el proceso de inicialización, la arquitectura del proyecto y cómo utilizar el bot de manera efectiva.
 
-## Introduction
+## 📚 Índice
 
-The Expense Tracker Telegram Bot helps you manage your personal expenses efficiently. With this bot, you can easily add your expenses, categorize them based on predefined categories and subcategories, and view insightful charts for better expense analysis.
+- [Introduccion](#introduccion) 
+- [Comenzar](#comenzar)  
+- [Modo de Uso](#modo-de-uso) 
+- [Arquitectura del Proyecto y Relaciones de Clases](#arquitecture-relaciones-clases) 
+- [Contribuciones](#contribuciones) 
 
-Key features of the Expense Tracker Telegram Bot include:
-- **Expense Tracking**: Add and manage your expenses seamlessly within the Telegram app.
-- **Categorization**: Classify your expenses by selecting from a predefined set of categories and subcategories.
-- **Integration with Google Sheets**: Connect the bot to your Google Sheets account to generate charts and track your expenses over time.
+## <a name="introduccion"></a> 🎉 **Introducción**
 
-## How It Works
 
-1. **Start the Bot**: Start a conversation with the Expense Tracker Telegram Bot by searching for it in the Telegram app.
-2. **Register**: Register your account with the bot to access all its features.
-3. **Add Expenses**: Use the bot's commands to add your expenses, providing details such as amount, date, category, and subcategory.
-4. **Categorize Expenses**: Choose the appropriate category and subcategory for each expense to facilitate better expense analysis.
-5. **View Expense Charts**: Connect your Google Sheets account to the bot to generate charts and visualizations of your expenses.
-6. **Analyze and Track**: Analyze your expenses using the charts and track your spending habits over time.
+El Bot de Gestión de Gastos en Telegram ofrece las siguientes funcionalidades principales:
 
-## Getting Started
+- Seguimiento de Gastos: Los usuarios pueden agregar y categorizar sus gastos personales a través de interacciones con el bot.
+- Visualización de Datos: El bot genera gráficos e tablas informativas para que los usuarios visualicen sus gastos y patrones de gasto.
+- Soporte Multiusuario: El bot gestiona eficientemente interacciones con múltiples usuarios simultáneamente, cada uno identificado por su chatID único.
 
-To use the Expense Tracker Telegram Bot, follow these steps:
+## <a name="comenzar"></a> 🚀 **Comenzar**
 
-1. **Clone the Repository**: Clone this repository to your local machine:
-   ```
-   git clone https://github.com/your-username/expense-tracker-telegram-bot.git
-   ```
+Para inicializar el proyecto, sigue estos pasos:
 
-2. **Set Up Telegram Bot API**: Obtain a Telegram Bot API token by creating a new bot using the [BotFather](https://core.telegram.org/bots#botfather). Make sure to enable the necessary permissions for the bot.
+1. Clona el repositorio en tu máquina local.
 
-3. **Set Up Google Sheets API**: Set up the Google Sheets API and obtain the required credentials to access your Google Sheets account. Refer to the Google Sheets API documentation for detailed instructions.
+```
+git clone https://github.com/cmd69/teleBot.git
+```
 
-4. **Configure the Bot**: Configure the necessary environment variables by creating a `.env` file in the project's root directory. Include the following variables:
-   ```
-   TELEGRAM_TOKEN=your-telegram-bot-token
-   GOOGLE_CLIENT_ID=your-google-client-id
-   GOOGLE_CLIENT_SECRET=your-google-client-secret
-   ```
+2. Instala las dependencias necesarias usando pip install -r requirements.txt.
 
-5. **Install Dependencies**: Install the required dependencies by running the following command:
-   ```
-   npm install
-   ```
+3. Configura la API del Bot de Telegram: Obtén un token de la API del Bot de Telegram creando un nuevo bot con el BotFather. Asegúrate de habilitar los permisos necesarios para el bot.
 
-6. **Start the Bot**: Start the bot by running the following command:
-   ```
-   npm start
-   ```
+4. Renombra el archivo .env.example a .env en el directorio raíz.
+
+5. Abre el archivo .env y agrega tu token del Bot de Telegram y otros detalles de configuración.
+
+6. Inicia el bot con python3 telebot.py.
+
+## <a name="modo-de-uso"></a> 📝 **Modo de Uso**
+
+1. Inicia un chat con el Bot de Gestión de Gastos en Telegram con el comando /start.
+2. Sigue el menú para agregar tus gastos, categorizarlos y proporcionar detalles relevantes.
+3. Interactúa con los menús y comandos del bot para ver gráficos y tablas que muestran tus hábitos de gasto.
+
+## <a name="arquitecture-relaciones-clases"></a> 🏗️ **Arquitectura del Proyecto y Relaciones de Clases**
+
+El proyecto está organizado en varios módulos clave:
+
+- Managers: Responsables de gestionar diversos aspectos de la aplicación, incluida la gestión de usuarios, operaciones de base de datos y manipulación de datos.
+- Generators: Responsables de generar componentes interactivos como teclados y gráficos para la interfaz de usuario.
+- Handlers: Gestionan las interacciones de los usuarios e implementan varias funcionalidades del bot.
+- telebot.py: El punto de entrada principal que configura el bot, inicializa managers y generators, y comienza a recibir actualizaciones.
+- streamlit_app.py: Ejecuta la aplicación Streamlit para la visualización de datos utilizando la clase ChartsGenerator.
+- bot_setup.py: Maneja la carga de configuraciones e inicializa el bot, el despachador, los managers y los generators.
+
+## <a name="contribuciones"></a> 🤝 **Contribuciones**
+
+¡Damos la bienvenida a contribuciones de la comunidad! Si estás interesado en mejorar el bot, siéntete libre de enviar pull requests o abrir problemas.
+
+Gracias por utilizar el Bot de Gestión de Gastos en Telegram. Si encuentras algún problema o tienes preguntas, no dudes en contactarnos o abrir un issue en el repositorio. 🙌
+
+---
+
+# 🇺🇸 **Telegram Expense Manager Bot**
+
+Welcome to the documentation for the Telegram Expense Manager Bot, a powerful tool designed to help users efficiently manage personal expenses, categorize transactions, and gain insights through visualizations. This document will provide you with an overview of the project's functionality, initialization process, project architecture, and how to use the bot effectively.
+
+## 📚 **Table of Contents**
+
+- [Introduction](#introduction) 
+- [Getting Started](#getting-started)  
+- [Usage Guide](#usage-guide) 
+- [Project Architecture and Class Relationships](#project-architecture-relationships) 
+- [Contributing](#contributing) 
+
+## <a name="introduction"></a>🎉 **Introduction**
+
+The Telegram Expense Manager Bot offers the following core functionalities:
+
+- Expense Tracking: Users can add and categorize their personal expenses through interactions with the bot.
+- Data Visualization: The bot generates insightful charts and tables for users to visualize their expenses and spending patterns.
+- Multi-User Support: The bot efficiently manages interactions with multiple users simultaneously, each identified by their unique chatID.
+
+## <a name="getting-started"></a> 🚀 **Getting Started**
+
+To initialize the project, follow these steps:
+
+1. Clone the repository to your local machine.
+
+```
+git clone https://github.com/cmd69/teleBot.git
+```
+
+2. Install the required dependencies using pip install -r requirements.txt.
+
+3. Set Up Telegram Bot API: Obtain a Telegram Bot API token by creating a new bot using the BotFather. Make sure to enable the necessary permissions for the bot.
+
+4. Rename the .env.example file to .env in the root directory.
+
+5. Open the .env file and add your Telegram Bot token and other configuration details.
+
+6. Start the bot with python3 telebot.py.
+
+## <a name="usage-guide"></a> 📝 **Usage Guide**
+
+1. Start a chat with the Telegram Expense Manager Bot with the command /start.
+2. Follow the menu to add your expenses, categorize them, and provide relevant details.
+3. Interact with the bot's menus and commands to view charts and tables showcasing your spending habits.
+
+## <a name="project-architecture-relationships"></a> 🏗️ **Project Architecture and Class Relationships**
+
+The project is organized into several key modules:
+
+- Managers: Responsible for managing various aspects of the application, including user management, database operations, and data handling.
+- Generators: Responsible for generating interactive components like keyboards and charts for the user interface.
+- Handlers: Manage user interactions and implement various functionalities of the bot.
+- telebot.py: The main entry point that sets up the bot, initializes managers and generators, and starts polling for updates.
+- streamlit_app.py: Runs the Streamlit application for data visualization using the ChartsGenerator class.
+- bot_setup.py: Handles loading settings and initializing the bot, dispatcher, managers, and generators.
+## <a name="contributing"></a> 🤝 **Contributing**
+
+We welcome contributions from the community! If you're interested in improving the bot, feel free to submit pull requests or open issues.
+
+Thank you for using the Telegram Expense Manager Bot. If you encounter any issues or have questions, please don't hesitate to contact us or open an issue in the repository. 🙌
