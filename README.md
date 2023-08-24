@@ -18,7 +18,7 @@ The Telegram Expense Management Bot offers the following core functionalities:
 - **Data Visualization:** The bot generates insightful charts and tables for users to visualize their expenses and spending patterns.
 - **Multi-User Support:** The bot efficiently manages interactions with multiple users simultaneously, each identified by their unique `chatID`.
 
-## [Getting Started](getting-started)
+## Getting Started
 
 To initialize the project, follow these steps:
 
