@@ -75,7 +75,7 @@ Welcome to the documentation for the Telegram Expense Manager Bot, a powerful to
 - [Way of Use](#way-of-use) 
 - [Contributing](#contributing) 
 
-## 🎉 **Introduction**
+## <a name="introduction"></a>🎉 **Introduction**
 
 The Telegram Expense Manager Bot offers the following core functionalities:
 
