@@ -1,0 +1,97 @@
+[
+    {
+        "id": 1,
+        "category": "Comida🍕",
+        "subcategories": [
+            "Snacks🍫",
+            "Rest.🍔",
+            "Compra🍅"
+        ]
+    },
+    {
+        "id": 2,
+        "category": "Fijos🔄",
+        "subcategories": [
+            "Parking🅿",
+            "Suscrip.🎫",
+            "Alquiler🏠",
+            "Luz💡",
+            "Agua💧",
+            "Gym🏋🏼"
+        ]
+    },
+    {
+        "id": 3,
+        "category": "Transp.🚆",
+        "subcategories": [
+            "Diesel🚓",
+            "Tren🚄",
+            "Bus🅱️",
+            "MetroⓂ️",
+            "Taxi🚕"
+        ]
+    },
+    {
+        "id": 5,
+        "category": "Assets💎",
+        "subcategories": []
+    },
+    {
+        "id": 6,
+        "category": "Fiesta🍺",
+        "subcategories": [
+            "Bebidas🍹",
+            "Entradas🎟️",
+            "Bares🍺"
+        ]
+    },
+    {
+        "id": 7,
+        "category": "Holidays🗽",
+        "subcategories": [
+            "Avion✈️",
+            "Estancia🏠"
+        ]
+    },
+    {
+        "id": 8,
+        "category": "Otros🃏",
+        "subcategories": [
+            
+        ]
+    },
+    {
+        "id": 8,
+        "category": "Mas🃏",
+        "subcategories": [
+            "Regalos🎁",
+            "Peluqueria💈",
+            "TasasX"
+        ]
+    },
+    {
+        "id": 9,
+        "category": "Ropa👕",
+        "subcategories": []
+    },
+    {
+        "id": 10,
+        "category": "Ocio🛹",
+        "subcategories": []
+    },
+    {
+        "id": 11,
+        "category": "Debt💸",
+        "subcategories": []
+    },
+    {
+        "id": 12,
+        "category": "Health🏥",
+        "subcategories": []
+    },
+    {
+        "id": 14,
+        "category": "Ahorros💰",
+        "subcategories": []
+    }
+]

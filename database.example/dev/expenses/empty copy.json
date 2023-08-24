@@ -1,0 +1,34 @@
+{
+    "years": [
+        {
+            "year": 2022,
+            "months": [
+                {
+                    "month": 1,
+                    "expenses": [],
+                    "income": [],
+                    "totalExpenses": 0,
+                    "totalIncome": 0
+                }
+            ],
+            "totalExpenses": 0,
+            "totalIncome": 0,
+            "savings": 0
+        },
+        {
+            "year": 2023,
+            "months": [
+                {
+                    "month": 1,
+                    "expenses": [],
+                    "income": [],
+                    "totalExpenses": 0,
+                    "totalIncome": 0
+                }
+            ],
+            "totalExpenses": 0,
+            "totalIncome": 0,
+            "savings": 0
+        }
+    ]
+}
