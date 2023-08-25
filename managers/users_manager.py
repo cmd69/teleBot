@@ -1,5 +1,6 @@
 import json
 import hashlib
+import os
 import time
 from utils import DecimalEncoder
 
@@ -10,6 +11,7 @@ class UsersManager:
         self.db_path = db_path
         self.port = port
         self.ip = ip
+        self.mode = os.environ.get('TELEBOT_ENV', 'dev')
         self.users_data = self.load_json(self.db_path)
 
     def load_json(self, file_path):
@@ -17,8 +19,30 @@ class UsersManager:
             data = json.load(f)
         return data
 
-    def create_new_user(self, new_user):        
-        pass
+    def create_new_user(self, chatID, username):
+        
+        try:
+            new_user_entry = {
+                "username": username,
+                "credFile": "database/" + self.mode + "/keys/" + username.lower() + "_key.json",
+                "sheetsFile": None,
+                "categories": "database/" + self.mode + "/categories/" + username.lower() + "_categories.json",
+                "paymentMethods": "database/" + self.mode + "/paymentMethods/" + username.lower() + "_payments.json",
+                "dateFormat": "mmddyy",
+                "expensesFile": "database/" + self.mode + "/expenses/" + username.lower() + "_expenses.json",
+                "jsonDatabase": True,
+                "sheetsDatabase": False
+            }
+
+            self.users_data[chatID] = new_user_entry
+            
+            with open(self.db_path, 'w') as f:
+                json.dump(self.users_data, f, indent=4)
+        
+        except Exception as e:
+            raise RuntimeError(f"Failed to create new user: {e}")
+
+        
 
     # Streamlit links management
     def get_link(self, chatID):
@@ -28,7 +52,6 @@ class UsersManager:
             return link
         except (FileNotFoundError, KeyError) as e:
             raise RuntimeError(f"Failed to retrieve user data for chat ID {chatID}: {e}")
-        
 
     def create_link(self, chatID):
         # token generation

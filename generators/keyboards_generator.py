@@ -43,7 +43,7 @@ class KeyboardsGenerator:
         )
 
         ikGuest = InlineKeyboardMarkup().add(
-           InlineKeyboardButton(text="Comenzar de cero :)", callback_data="new_guest"),
+           InlineKeyboardButton(text="Comenzar de cero :)", callback_data="new_user"),
            InlineKeyboardButton(text="Probar demo", callback_data="new_demo")
         )
 

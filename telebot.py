@@ -32,6 +32,7 @@ if __name__ == "__main__":
     from handlers.fetch_all_handler import *
     from handlers.get_link_handler import *
     from handlers.create_link_handler import *
+    from handlers.create_user_handler import *
     
     # Bot initialization
     bot_process = Process(target=run_bot)

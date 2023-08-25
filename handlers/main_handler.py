@@ -61,7 +61,9 @@ async def welcome(message: types.Message):
         await message.answer("Hola, bienvenido a tu gestor de portfolio!", reply_markup=ikMain)
     else:
         await message.answer("Hola, bienvenido a tu gestor de portfolio! Parece que eres nuevo" +
-            "pero no te preocupes, porque puedes comenzar a usar la app sin registrarte!", reply_markup=ikGuest)
+            " pero no te preocupes, porque puedes comenzar a usar la app sin registrarte!\n\n" +
+            " Si le das a probar demo, se cargarán datos de prueba, y comenzando desde 0 podrás" +
+            " empezar a guardar tus gastos.", reply_markup=ikGuest)
 
 
 # Main Menu
