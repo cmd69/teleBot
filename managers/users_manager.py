@@ -1,6 +1,7 @@
 import json
 import hashlib
 import os
+import os
 import time
 import shutil
 from utils import DecimalEncoder
@@ -12,6 +13,7 @@ class UsersManager:
         self.db_path = db_path
         self.port = port
         self.ip = ip
+        self.mode = os.environ.get('TELEBOT_ENV', 'dev')
         self.mode = os.environ.get('TELEBOT_ENV', 'dev')
         self.users_data = self.load_json(self.db_path)
 
