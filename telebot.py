@@ -39,9 +39,9 @@ if __name__ == "__main__":
     bot_process.start()
     
     # Streamlit initialization
-    streamlit_process = Process(target=run_streamlit)
-    streamlit_process.start()
+    #streamlit_process = Process(target=run_streamlit)
+    #streamlit_process.start()
 
     bot_process.join()
-    streamlit_process.join()
+    #streamlit_process.join()
     

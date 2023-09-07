@@ -34,9 +34,6 @@ async def random_value(call: types.CallbackQuery):
     async def get_username(message: types.Message):
         username = message.text
         dbManager.create_new_user(chatID, username)
-        await bot.send_message_reply_markup(
-                        chatID,
-                        messageID,
-                        inline_message_id= None,
+        await message.answer("Perfecto, ya está todo listo!\nPuedes empezar añadiendo gastos seleccionando `portfolio`",
                         reply_markup=ikPortfolio)
     

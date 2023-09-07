@@ -2,6 +2,7 @@ import json
 import hashlib
 import os
 import time
+import shutil
 from utils import DecimalEncoder
 
 
@@ -24,7 +25,7 @@ class UsersManager:
         try:
             new_user_entry = {
                 "username": username,
-                "credFile": "database/" + self.mode + "/keys/" + username.lower() + "_key.json",
+                "credFile": None,
                 "sheetsFile": None,
                 "categories": "database/" + self.mode + "/categories/" + username.lower() + "_categories.json",
                 "paymentMethods": "database/" + self.mode + "/paymentMethods/" + username.lower() + "_payments.json",
@@ -34,10 +35,31 @@ class UsersManager:
                 "sheetsDatabase": False
             }
 
-            self.users_data[chatID] = new_user_entry
+            self.users_data[str(chatID)] = new_user_entry
+
+            user_folders = [
+                f"database/{self.mode}/categories/",
+                f"database/{self.mode}/expenses/"
+            ]
             
-            with open(self.db_path, 'w') as f:
-                json.dump(self.users_data, f, indent=4)
+            for folder in user_folders:
+                os.makedirs(folder, exist_ok=True)
+
+
+            default_categories_file = f"database/{self.mode}/categories/default_categories.json"
+            categories_file = new_user_entry["categories"]
+
+            default_expenses_file = f"database/{self.mode}/expenses/default_expenses.json"
+            expenses_file = new_user_entry["expensesFile"]
+
+            if os.path.exists(default_categories_file):             
+                shutil.copy(default_categories_file, categories_file)
+
+            if os.path.exists(default_expenses_file):             
+                shutil.copy(default_expenses_file, expenses_file)
+            
+            
+            self._save_data(self.users_data)
         
         except Exception as e:
             raise RuntimeError(f"Failed to create new user: {e}")
@@ -179,8 +201,10 @@ class UsersManager:
 
     def user_exists(self, chatID):
         try:
-            data = self.users_data
-            return str(chatID) in data
+            for x in self.users_data:
+                if (str(x) == str(chatID)):
+                    return True
+            return False
         except FileNotFoundError:
             raise Exception("Users file not found.")
         except (KeyError, ValueError):
@@ -189,8 +213,7 @@ class UsersManager:
     def _save_data(self, data):
         
         filename = self.db_path
-        with open(filename, "r+") as file:
-            file.seek(0)
+        with open(filename, "w") as file:  # Open the file in write mode
             json.dump(data, file, indent=4, cls=DecimalEncoder)
-            file.truncate()    
+        self.users_data = data  # Update the in-memory data with the newly saved data
         return True

@@ -24,13 +24,13 @@ async def welcome(message: types.Message):
         "date": "30/05/2023",
         "category": "Comida",
         "subcategory": "Snacks",
-        "price": 100000,
-        "description": "SnickersChuches"
+        "price": 10,
+        "description": "Merienda"
     }
     income = {
         "date": "30/05/2023",
         "price": 100000,
-        "description": "SnickersChuches"
+        "description": "Nómina"
     }
     consult = {
         'date': "30/05/2023",
