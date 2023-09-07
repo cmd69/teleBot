@@ -14,7 +14,6 @@ class UsersManager:
         self.port = port
         self.ip = ip
         self.mode = os.environ.get('TELEBOT_ENV', 'dev')
-        self.mode = os.environ.get('TELEBOT_ENV', 'dev')
         self.users_data = self.load_json(self.db_path)
 
     def load_json(self, file_path):
@@ -22,7 +21,7 @@ class UsersManager:
             data = json.load(f)
         return data
 
-    def create_new_user(self, chatID, username):
+    def create_new_user(self, chatID, username, demo):
         
         try:
             new_user_entry = {
@@ -34,7 +33,8 @@ class UsersManager:
                 "dateFormat": "mmddyy",
                 "expensesFile": "database/" + self.mode + "/expenses/" + username.lower() + "_expenses.json",
                 "jsonDatabase": True,
-                "sheetsDatabase": False
+                "sheetsDatabase": False,
+                "demo": demo
             }
 
             self.users_data[str(chatID)] = new_user_entry
@@ -48,10 +48,15 @@ class UsersManager:
                 os.makedirs(folder, exist_ok=True)
 
 
+            # Categories
             default_categories_file = f"database/{self.mode}/categories/default_categories.json"
             categories_file = new_user_entry["categories"]
 
-            default_expenses_file = f"database/{self.mode}/expenses/default_expenses.json"
+            # Expenses
+            if demo:
+                default_expenses_file = f"database/{self.mode}/expenses/demo_expenses.json"
+            else:
+                default_expenses_file = f"database/{self.mode}/expenses/default_expenses.json"
             expenses_file = new_user_entry["expensesFile"]
 
             if os.path.exists(default_categories_file):             
@@ -66,7 +71,6 @@ class UsersManager:
         except Exception as e:
             raise RuntimeError(f"Failed to create new user: {e}")
 
-        
 
     # Streamlit links management
     def get_link(self, chatID):

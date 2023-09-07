@@ -59,7 +59,7 @@ pyparsing==3.0.9
 pyrsistent==0.19.3
 python-dateutil==2.8.2
 python-dotenv==1.0.0
-git+https://github.com/cmd69/telegram-bot-calendar.git@master
+git+https://github.com/cmd69/telegram-bot-calendar.git@v1.1.6
 python-telegram-bot-pagination==0.0.2
 pytz==2023.3
 pytz-deprecation-shim==0.1.0.post0

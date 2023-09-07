@@ -28,18 +28,24 @@ class KeyboardsGenerator:
             "customMonth": "Otro Mes",
             "back": "Atras ↩️"
         }
+        self.settings_buttons = {
+            "exit_demo": "Nuevo Recorrido",
+            "enter_demo": "Cargar datos prueba"
+        }
+
 
 
     def get_default_keyboards(self):
         ikPortfolio = InlineKeyboardMarkup(row_width=3)
         ikFetchData = InlineKeyboardMarkup(row_width=3)
         ikBenz = InlineKeyboardMarkup(row_width=3)
+        ikSettings = InlineKeyboardMarkup(row_width=3)
         mkDescription = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(KeyboardButton('Null'), KeyboardButton('Cancel❌'))
         ikCancel = InlineKeyboardMarkup().add(InlineKeyboardButton(text="Cancel", callback_data="cancel"))
         ikNumeric = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add("1€", "2€", "5€", "10€", "20€", "50€", KeyboardButton('Cancel❌'))
         ikMain = InlineKeyboardMarkup().add(
            InlineKeyboardButton(text="Portfolio 📊", callback_data="portfolio"),
-           InlineKeyboardButton(text="Benz 🚓", callback_data="benz")
+           InlineKeyboardButton(text="Settings ⚙️", callback_data="settings")
         )
 
         ikGuest = InlineKeyboardMarkup().add(
@@ -60,6 +66,11 @@ class KeyboardsGenerator:
         for key, value in self.benz_buttons.items():
             button = InlineKeyboardButton(text=value, callback_data=key)
             ikBenz.insert(button)
+
+        # Create buttons for Settings
+        for key, value in self.settings_buttons.items():
+            button = InlineKeyboardButton(text=value, callback_data=key)
+            ikSettings.insert(button)
 
         return ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ikGuest
 
