@@ -71,6 +71,21 @@ class UsersManager:
         except Exception as e:
             raise RuntimeError(f"Failed to create new user: {e}")
 
+    def exit_demo_mode(self, chatID):
+        
+        user_demo_expenses = self.get_user_expenses_file(chatID)
+        default_expenses_file = f"database/{self.mode}/expenses/default_expenses.json"
+        
+        try:
+            if os.path.exists(default_expenses_file):
+                shutil.copy(default_expenses_file, user_demo_expenses)
+                return True  # Operation successful
+            else:
+                return False  # Default expenses file does not exist
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")
+            return False  # An error occurred during the operation
+
 
     # Streamlit links management
     def get_link(self, chatID):

@@ -29,8 +29,9 @@ class KeyboardsGenerator:
             "back": "Atras ↩️"
         }
         self.settings_buttons = {
-            "exit_demo": "Nuevo Recorrido",
-            "enter_demo": "Cargar datos prueba"
+            "exit_demo": "Salir del modo demo",
+            "back": "Atras ↩️"
+            #"enter_demo": "Cargar datos prueba"
         }
 
 
@@ -72,7 +73,7 @@ class KeyboardsGenerator:
             button = InlineKeyboardButton(text=value, callback_data=key)
             ikSettings.insert(button)
 
-        return ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ikGuest
+        return ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ikGuest, ikSettings
 
 
 

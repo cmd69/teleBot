@@ -11,7 +11,7 @@ import os
 # ----- Keyboards Setup ----- #
 #
 
-ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ikGuest = keyboardFactory.get_default_keyboards()
+ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ikGuest, ikSettings = keyboardFactory.get_default_keyboards()
 
 # /Start and /Help
 @dp.message_handler(commands=['test'])

@@ -4,7 +4,7 @@ from aiogram import types
 # Local Imports
 from telebot import dp, dbManager, keyboardFactory
 
-ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ikGuest = keyboardFactory.get_default_keyboards()
+from handlers.main_handler import ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ikGuest, ikSettings
 
 
 @dp.message_handler(commands=['link'])

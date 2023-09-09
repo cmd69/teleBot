@@ -8,7 +8,7 @@ from telebot import dp, dbManager, keyboardFactory
 # ----- Keyboards Setup ----- #
 #
 
-ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ikGuest = keyboardFactory.get_default_keyboards()
+from handlers.main_handler import ikPortfolio, ikFetchData, ikBenz, mkDescription, ikCancel, ikNumeric, ikMain, ikGuest, ikSettings
 
 @dp.message_handler(commands=['newlink'])
 async def welcome(message: types.Message):
