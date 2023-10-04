@@ -67,7 +67,7 @@ Gracias por utilizar el Bot de Gestión de Gastos en Telegram. Si encuentras alg
 
 # 🇺🇸 **Telegram Expense Manager Bot**
 
-Welcome to the documentation for the Telegram Expense Manager Bot, a powerful tool designed to help users efficiently manage personal expenses, categorize transactions, and gain insights through visualizations. This document will provide you with an overview of the project's functionality, initialization process, project architecture, and how to use the bot effectively.
+Welcome to the documentation for the Telegram Expense Manager Bot, a powerful tool designed to help users efficiently manage personal expenses, categorize transactions, and gain insights through visualizations. This document will provide you with an overview of the project's functionality, initialization process, project architecture, and how to use the telegram bot effectively.
 
 ## 📚 **Table of Contents**
 
