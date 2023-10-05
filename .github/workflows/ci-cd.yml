@@ -1,4 +1,4 @@
-name: Auto Deploy
+name: SSH Deploy
 
 on:
   push:
@@ -9,14 +9,29 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    env:
+      SERVER_IP: ${{ secrets.SERVER_IP }}
+      SSH_KEY: ${{ secrets.SSH_KEY }}
+      SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+      TELEBOT_PATH: ${{ secrets.TELEBOT_PATH }}
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: SSH into Server and Pull Changes
+    - name: Set up SSH
       run: |
-        ssh -i ${{ secrets.SSH_KEY }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SERVER_IP }} << EOF
-          cd ${{ secrets.TELEBOT_PATH }}
+        mkdir -p ~/.ssh
+        echo "$SSH_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
+        ssh-add ~/.ssh/id_rsa
+        echo "Host $SERVER_IP\n  StrictHostKeyChecking no" >> ~/.ssh/config
+
+    - name: SSH into Server and Execute Commands
+      run: |
+        ssh $SSH_USERNAME@$SERVER_IP << 'EOF'
+          cd $TELEBOT_PATH
           git pull origin main
           pm2 restart telebot
         EOF
