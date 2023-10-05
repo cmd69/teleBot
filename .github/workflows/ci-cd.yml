@@ -15,7 +15,7 @@ jobs:
 
     - name: SSH into Server and Pull Changes
       run: |
-        echo "$SSH_KEY" > github_actions_deploy_key
+        echo ${{ secrets.SSH_KEY }} > github_actions_deploy_key
         chmod 600 github_actions_deploy_key
         ssh -i ${{ secrets.SSH_USERNAME }}@${{ secrets.RASPBERRY_PI_IP }} << EOF
           cd ${{ secrets.TELEBOT_PATH }}
