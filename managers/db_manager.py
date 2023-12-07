@@ -64,14 +64,15 @@ class DBManager:
         if self.users_manager.user_sheets_on(chatID):
             self.sheets_manager.delete_income(chatID, income)
 
-    def load_expenses_from_sheets_to_json(self, chatID):
-        if self.users_manager.user_json_on(chatID):
+    def transfer_sheets_to_json(self, chatID):
+        if self.users_manager.user_json_on(chatID) and self.users_manager.user_sheets_on(chatID):
             dates_to_load = self.sheets_manager.get_sheets_names(chatID)
             
             self.json_manager.delete_all(chatID)
-        
             try:
                 for date in dates_to_load:
+
+                    print("Processing: " + date)
 
                     formatted_expenses = self._format_sheets_to_json(
                         self.sheets_manager.get_expenses_by_month(chatID, date)
@@ -84,11 +85,13 @@ class DBManager:
                     )
                     
                     self.json_manager.set_month_incomes(chatID, formatted_incomes)
-
+                print("Done!")
                 return True
             except Exception as e:
                 print("An error occurred transfering sheets to json:", str(e))
                 return False
+        else:
+            return False
 
     def get_expenses_by_month(self, chatID, consult):
         if self.users_manager.user_json_on(chatID):

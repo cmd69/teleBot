@@ -29,7 +29,8 @@ class KeyboardsGenerator:
             "back": "Atras ↩️"
         }
         self.settings_buttons = {
-            "exit_demo": "Salir del modo demo",
+            # "exit_demo": "Salir del modo demo",
+            "transfer_sheets_to_json":"Transferir sheets a json",
             "back": "Atras ↩️"
             #"enter_demo": "Cargar datos prueba"
         }

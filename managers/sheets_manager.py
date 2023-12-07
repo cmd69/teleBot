@@ -162,7 +162,6 @@ class SheetsManager:
                 date_str = '01/' + month + '/' + year
                 converted_date = datetime.datetime.strptime(date_str, '%d/%b/%Y').strftime('%d/%m/%Y')
                 converted_dates.append(converted_date)
-            
             return converted_dates
 
         except HttpError as error:
@@ -179,7 +178,7 @@ class SheetsManager:
             dateClass = datetime.datetime.strptime(date, "%d/%m/%Y")
         except:
             print("sheetsManager.getMonthExpenses: strptime except")
-            dateClass = date
+            return False
         
         sheet = months[str(dateClass.month)] + str(dateClass.year)[-2:] + "!B10:F"
         
