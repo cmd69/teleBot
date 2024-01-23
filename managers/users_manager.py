@@ -188,12 +188,6 @@ class UsersManager:
         except (FileNotFoundError, KeyError) as e:
             raise RuntimeError(f"Failed to retrieve categories file for chat ID {chatID}: {e}")
 
-    def get_user_date_format(self, chatID):
-        try:
-            data = self.users_data
-            return data[str(chatID)]["dateFormat"]
-        except (FileNotFoundError, KeyError) as e:
-            raise RuntimeError(f"Failed to retrieve categories file for chat ID {chatID}: {e}")
 
     def get_all_user_categories(self, chatID):
         try:
