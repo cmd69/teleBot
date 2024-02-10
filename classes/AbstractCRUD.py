@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class AbstractTransaction(ABC):
+class AbstractCRUD(ABC):
     @abstractmethod
     def create(self):
         pass

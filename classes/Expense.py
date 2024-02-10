@@ -1,6 +1,6 @@
-import AbstractTransaction
+from classes import AbstractCRUD
 
-class Expense(AbstractTransaction):
+class Expense(AbstractCRUD):
     def __init__(self, chat_id, date, amount, category_id, subcategory_id=None, description=None, id=None):
         self.id = id
         self.chat_id = chat_id
@@ -11,8 +11,10 @@ class Expense(AbstractTransaction):
         self.description = description
 
     def create(self):
-        query = f"INSERT INTO expenses (chat_id, date, amount, category_id, subcategory_id, description) VALUES ({self.chat_id}, '{self.date}', {self.amount}, {self.category_id}, {self.subcategory_id}, '{self.description}')"
-        return query
+        # query = f"INSERT INTO expenses (chat_id, date, amount, category_id, subcategory_id, description) VALUES ({self.chat_id}, '{self.date}', {self.amount}, {self.category_id}, {self.subcategory_id}, '{self.description}')"
+        # return query
+        print("FROM EXPENSE CREATE METHOD")
+        return "FROM EXPENSE CREATE METHOD"
 
     def read(self):
         query = f"SELECT * FROM expenses WHERE id = {self.id}"

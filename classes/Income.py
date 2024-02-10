@@ -1,6 +1,6 @@
-import AbstractTransaction
+from classes import AbstractCRUD
 
-class Income(AbstractTransaction):
+class Income(AbstractCRUD):
     def __init__(self, chat_id, date, amount, description=None, id=None):
         self.id = id
         self.chat_id = chat_id
