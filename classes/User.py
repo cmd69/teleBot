@@ -28,10 +28,37 @@ class User(AbstractUser):
 
     # User specific methods
 
+    # --- Setters --- #
+
+    def set_username(self):
+        pass
+
+    def set_user_creds(self):
+        pass
+
+    def set_user_sheetsFile(self):
+        pass
+
+    # --- Getters --- #
+
+    def get_user_creds(self):
+        pass
+
+    def get_user_sheetsFile(self):
+        pass
+
     def get_username(self):
         pass
 
     def get_user_categories(self):
+        pass
+
+    # --- User specific methods --- #
+
+    def exit_demo_mode(self):
+        pass
+
+    def sheets_on(self):
         pass
 
     def user_exists(self):

@@ -1,5 +1,5 @@
 # Local
-from classes import AbstractCRUD
+from classes import AbstractCRUD, AbstractUser
 from remodel import DataSource
 
 class DataSourceDecorator(DataSource):
@@ -25,17 +25,17 @@ class DataSourceDecorator(DataSource):
     
     # ---- CRUD operations ---- #
     
-    def create(self, obj: AbstractCRUD):
-        return self._component.create(obj)
+    def create(self, user: AbstractUser, obj: AbstractCRUD):
+        return self._component.create(user, obj)
     
-    def read(self, obj: AbstractCRUD):
-        return self._component.read(obj)
+    def read(self, user: AbstractUser, obj: AbstractCRUD):
+        return self._component.read(user, obj)
     
-    def update(self, obj: AbstractCRUD):
-        return self._component.update(obj)
+    def update(self, user: AbstractUser, obj: AbstractCRUD):
+        return self._component.update(user, obj)
     
-    def delete(self, obj: AbstractCRUD):
-        return self._component.delete(obj)
+    def delete(self, user: AbstractUser, obj: AbstractCRUD):
+        return self._component.delete(user, obj)
     
     
     # ---- SQLDataSource default methods ---- #

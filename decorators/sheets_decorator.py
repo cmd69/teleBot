@@ -1,6 +1,8 @@
 from decorators import SheetsDecoratorInterface
 from remodel import DataSource, DataSourceDecorator
-from classes import Expense, Income
+from classes import Expense, Income, AbstractCRUD, AbstractUser
+from connectors import SheetsConnector
+
 
 class SheetsDecorator(DataSourceDecorator, SheetsDecoratorInterface):
     """
@@ -10,24 +12,32 @@ class SheetsDecorator(DataSourceDecorator, SheetsDecoratorInterface):
 
     def __init__(self, component: DataSource) -> None:
         super().__init__(component)
+        self.connection = SheetsConnector()
 
 
-    def create(self, obj: str) -> str:
+
+    # def create(self, obj: str) -> str:
+    #     """
+    #     Decorators may call parent implementation of the operation, instead of
+    #     calling the wrapped object directly. This approach simplifies extension
+    #     of decorator classes.
+    #     """
+    #     print(f"Creating {obj} in Google Sheets")
+    #     return self._component.create(obj)
+        
+    def create(self, user: AbstractUser, obj: AbstractCRUD= None) -> bool:
         """
         Decorators may call parent implementation of the operation, instead of
         calling the wrapped object directly. This approach simplifies extension
         of decorator classes.
         """
-        print(f"Creating {obj} in Google Sheets")
-        return self._component.create(obj)
+        if obj:
+            self.connection.execute(user, obj.create())
+            print(f"Creating {obj} in Google Sheets")
+            print(self._component)
+        return self._component.create(user, obj)
+        
 
-    def new_expense(self, expense: Expense) -> bool:
-        print(f"Creating {Expense} in Google Sheets")
-        return True
-
-    def new_income(self, income: Income) -> bool:
-        print(f"Creating {income} in Google Sheets")
-        return True
 
     def update_month_sheet(self, month: str):
         print(f"Updating {month} sheet")

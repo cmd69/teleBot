@@ -1,5 +1,7 @@
 from remodel import DataSource
-from classes import AbstractCRUD
+from classes import AbstractCRUD, AbstractUser
+from connectors import SqliteConnector
+from classes import User
 
 
 class SQLDataSource(DataSource):
@@ -8,23 +10,34 @@ class SQLDataSource(DataSource):
     might be several variations of these classes.
     """
 
+    def __init__(self):
+        self.connection = SqliteConnector()
+
     # ---- CRUD operations ---- #
 
-    def create(self, obj: AbstractCRUD) -> str:
-        obj.create()
+    def create(self, user: AbstractUser, obj: AbstractCRUD= None) -> str:
+        print(obj)
+        query = obj.create()
+        self.connection.execute(user, query)
         return "Nuevo gasto creado en SQLDataSource"
     
-    def read(self, obj: AbstractCRUD) -> str:
-        obj = obj.read()
+    def read(self, user: AbstractUser, obj: AbstractCRUD= None) -> AbstractCRUD:
+        if obj is None:
+            query = user.read()
+        else:
+            query = obj.read()
+        
+        print(query)
+        return self.connection.execute(user, query)
 
         
         
     
-    def update(self, obj: AbstractCRUD) -> str:
+    def update(self, user: AbstractUser, obj: AbstractCRUD=None) -> str:
         obj.update()
         return "Actualizando gasto en SQLDataSource"
     
-    def delete(self, obj: AbstractCRUD) -> str:
+    def delete(self, user: AbstractUser, obj: AbstractCRUD=None) -> str:
         obj.delete()
         return "Eliminando gasto en SQLDataSource"
     

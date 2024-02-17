@@ -25,8 +25,8 @@ if __name__ == "__main__":
     print("\n")
 
 
-    sheets_decorator = SheetsDecorator(sql_base)
-    print("Client: Now I've got a decorated component:", sheets_decorator.create(Expense(1, "2021-01-01", 100, 1, 1, "description")))
+    # sheets_decorator = SheetsDecorator(sql_base)
+    # print("Client: Now I've got a decorated component:", sheets_decorator.create(Expense(1, "2021-01-01", 100, 1, 1, "description")))
     # client_code(sheets_decorator)
 
     controller = Controller()
@@ -34,8 +34,8 @@ if __name__ == "__main__":
     my_user = User(2100)
     my_expense = Expense(1, "2021-01-01", 100, 1, 1, "description")
 
-    controller.create_expense(my_expense, my_user)
-
+    result = controller.create(my_user, my_expense)
+    print("Result: ", result)
 
 
 

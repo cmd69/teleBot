@@ -1,16 +1,9 @@
 from abc import ABC, abstractmethod
 
-class Singleton(ABC):
-    _instance = None
+class SingletonMeta(type):
+    _instances = {}
 
-    def __new__(cls):
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def __init__(self):
-        if not Singleton._instance:
-            print('Initializing Singleton')
-            Singleton._instance = self
-
-            
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]
