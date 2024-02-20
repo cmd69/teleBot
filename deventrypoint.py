@@ -34,7 +34,8 @@ if __name__ == "__main__":
     my_user = User(2100)
     my_expense = Expense(1, "2021-01-01", 100, 1, 1, "description")
 
-    result = controller.create(my_user, my_expense)
+    # result = controller.create(my_user, my_expense)
+    result = controller.create(my_user, my_user)
     print("Result: ", result)
 
 
