@@ -39,7 +39,7 @@ class SQLDataSource(DataSource):
     
     def delete(self, user: AbstractUser, obj: AbstractCRUD=None) -> str:
         obj.delete()
-        return "Eliminando gasto en SQLDataSource"`
+        return "Eliminando gasto en SQLDataSource"
     
 
     # ---- SQL Specific operations ---- #
