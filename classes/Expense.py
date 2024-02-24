@@ -1,29 +1,49 @@
-from classes import AbstractCRUD
+from classes import AbstractTransaction
+from classes import AbstractUser
+from datetime import date as Date
 
-class Expense(AbstractCRUD):
-    def __init__(self, chat_id, date, amount, category_id, subcategory_id=None, description=None, id=None):
+class Expense(AbstractTransaction):
+    def __init__(self, chat_id, date, amount, description=None, id=None):
         self.id = id
         self.chat_id = chat_id
         self.date = date
         self.amount = amount
-        self.category_id = category_id
-        self.subcategory_id = subcategory_id
         self.description = description
 
     def create(self):
-        # query = f"INSERT INTO expenses (chat_id, date, amount, category_id, subcategory_id, description) VALUES ({self.chat_id}, '{self.date}', {self.amount}, {self.category_id}, {self.subcategory_id}, '{self.description}')"
-        # return query
-        print("FROM EXPENSE CREATE METHOD")
-        return "FROM EXPENSE CREATE METHOD"
+        query = f"INSERT INTO EXPENSE (chat_id, date, amount, description) VALUES (?, ?, ?, ?)"
+        values = (self.chat_id, self.date, self.amount, self.description)
+        return query, values
 
     def read(self):
-        query = f"SELECT * FROM expenses WHERE id = {self.id}"
-        return query
+        query = "SELECT * FROM EXPENSE WHERE id = ?"
+        values = (self.id,)
+        return query, values
 
     def update(self):
-        query = f"UPDATE expenses SET chat_id = {self.chat_id}, date = '{self.date}', amount = {self.amount}, category_id = {self.category_id}, subcategory_id = {self.subcategory_id}, description = '{self.description}' WHERE id = {self.id}"
-        return query
+        query = "UPDATE EXPENSE SET chat_id = ?, date = ?, amount = ?, description = ? WHERE id = ?"
+        values = (self.chat_id, self.date, self.amount, self.description, self.id)
+        return query, values
 
     def delete(self):
-        query = f"DELETE FROM expenses WHERE id = {self.id}"
-        return query
+        query = "DELETE FROM EXPENSE WHERE id = ?"
+        values = (self.id,)
+        return query, values
+    
+    @staticmethod
+    def get_month_transactions(user: AbstractUser, month: Date):
+        query = "SELECT * FROM EXPENSE WHERE chat_id = ?" 
+        values = (user.chat_id)
+        return query, values
+    
+    @staticmethod
+    def get_range_transactions(user: AbstractUser, month_start: Date, month_end: Date):
+        pass
+
+    @staticmethod
+    def get_all_transactions(user: AbstractUser):
+        pass
+
+    @staticmethod
+    def get_avg_month_transactions(user: AbstractUser):
+        pass

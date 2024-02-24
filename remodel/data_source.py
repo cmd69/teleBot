@@ -23,27 +23,27 @@ class DataSource(ABC):
 
     # ---- SQL Specific operations ---- #
 
-    @abstractmethod
-    def get_expenses_by_month(self):
-        pass
+    # @abstractmethod
+    # def get_expenses_by_month(self):
+    #     pass
 
-    @abstractmethod
-    def get_incomes_by_month(self, chatID, date):
-        pass
+    # @abstractmethod
+    # def get_incomes_by_month(self, chatID, date):
+    #     pass
 
-    @abstractmethod
-    def get_all_expenses(self, chatID):
-        pass
+    # @abstractmethod
+    # def get_all_expenses(self, chatID):
+    #     pass
 
-    @abstractmethod
-    def get_all_incomes(self, chatID):
-        pass
+    # @abstractmethod
+    # def get_all_incomes(self, chatID):
+    #     pass
     
-    @abstractmethod
-    def get_all_categories(self):
-        pass
+    # @abstractmethod
+    # def get_all_categories(self):
+    #     pass
 
-    @abstractmethod
-    def get_average_category_expense(self, chatID):
-        pass
+    # @abstractmethod
+    # def get_average_category_expense(self, chatID):
+    #     pass
 

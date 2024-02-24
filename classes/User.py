@@ -1,30 +1,32 @@
 from classes import AbstractUser
 
 class User(AbstractUser):
-    def __init__(self, chat_id, username=None, sheets_file=None, credentials_path=None):
+    def __init__(self, chat_id, username=None):
         self.chat_id = chat_id
         self.username = username
-        self.sheets_file = sheets_file
-        self.credentials_path = credentials_path
 
 
     # CRUD methods
 
     def create(self):
-        query = f"INSERT INTO User (chat_id, username, sheets_file, credentials_path) VALUES ({self.chat_id}, '{self.username}', '{self.sheets_file}', '{self.credentials_path}')"
-        return query
+        query = f"INSERT INTO USER (chat_id, username) VALUES (?, ?)"
+        values = (self.chat_id, self.username)
+        return query, values
 
     def read(self):
-        query = f"SELECT * FROM User WHERE chat_id = {self.chat_id}"
-        return query
+        query = f"SELECT * FROM USER WHERE chat_id = ?"
+        values = (self.chat_id,)
+        return query, values
 
     def update(self):
-        query = f"UPDATE User SET username = '{self.username}', sheets_file = '{self.sheets_file}', credentials_path = '{self.credentials_path}' WHERE chat_id = {self.chat_id}"
-        return query
+        query = "UPDATE USER SET username = ? WHERE chat_id = ?"
+        values = (self.username, self.chat_id)
+        return query, values
 
     def delete(self):
-        query = f"DELETE FROM User WHERE chat_id = {self.chat_id}"
-        return query
+        query = f"DELETE FROM USER WHERE chat_id = ?"
+        values = (self.chat_id,)
+        return query, values
 
     # User specific methods
 

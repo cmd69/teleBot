@@ -2,60 +2,80 @@ from classes import Expense, User, AbstractCRUD, AbstractUser
 from remodel import DataSource, DataSourceDecorator, SQLDataSource, Controller
 from decorators import SheetsDecorator, SheetsDecoratorInterface
 import sqlite3
+from sqlite3 import Error
+import os
+from dotenv import load_dotenv
+from datetime import date as Date
 
+def create_connection(db_file):
+    """Create a database connection to a SQLite database specified by db_file"""
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+        print(f"Successfully connected to SQLite. SQLite version: {sqlite3.version}")
+    except Error as e:
+        print(e)
+    return conn
 
+def create_table(conn, create_table_sql):
+    """Create a table from the create_table_sql statement"""
+    try:
+        c = conn.cursor()
+        c.execute(create_table_sql)
+    except Error as e:
+        print(e)
 
-# def client_code(component: DataSource) -> None:
-#     """
-#     The client code works with all objects using the Component interface. This
-#     way it can stay independent of the concrete classes of components it works
-#     with.
-#     """
-#     expense = Expense(1, "2021-01-01", 100, 1, 1, "description")
+def main():
+    load_dotenv
+    database = os.getenv('DEV_SQLITE3')
+    print(f"Connecting to SQLite database at {database}")
+    database = database + "/test1.db"
+    print(f"Connecting to SQLite database at {database}")
 
-#     print(f"RESULT: {component.create(expense)}", end="\n\n")
-#     print(f"RESULT: {component.get_expenses_by_month()}", end="\n\n")
-#     print(f"RESULT: {component.create_curr_month_sheet()}", end="\n\n")
+    sql_create_users_table = """ CREATE TABLE IF NOT EXISTS users (
+                                        chat_id integer PRIMARY KEY,
+                                        username text NOT NULL
+                                    ); """
+
+    # Create a database connection
+    conn = create_connection(database)
+
+    # Create tables
+    if conn is not None:
+        create_table(conn, sql_create_users_table)
+        print("Table 'users' created successfully.")
+    else:
+        print("Error! Cannot create the database connection.")
+
+    # Close the connection
+    if conn:
+        conn.close()
+
 
 if __name__ == "__main__":
 
-    sql_base = SQLDataSource()
-    print("Client: I've got a complex component:", sql_base)
-    # client_code(sql_base)
-    print("\n")
-
-
-    # sheets_decorator = SheetsDecorator(sql_base)
-    # print("Client: Now I've got a decorated component:", sheets_decorator.create(Expense(1, "2021-01-01", 100, 1, 1, "description")))
-    # client_code(sheets_decorator)
+    # sql_base = SQLDataSource()
 
     controller = Controller()
 
-    my_user = User(2100)
-    my_expense = Expense(1, "2021-01-01", 100, 1, 1, "description")
+    my_user = User(256900373, "Altoke")
+    my_expense = Expense(1, "2021-01-01", 100, "description")
 
-    # result = controller.create(my_user, my_expense)
-    result = controller.create(my_user, my_user)
+    # connection = sqlite3.connect('./database/sqlite/sqlite.db')
+
+    # a = connection.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='USER';")
+    # print(a.fetchall())
+    date = Date(2021, 1, 1)
+    result = controller.get_month_transactions(my_user, my_expense, date)
     print("Result: ", result)
 
-
-
+    
     ### SQL ###
 
-    # conn = sqlite3.connect('./database/sqlite/sqlite.db')
-    # cursor = conn.cursor()
+    # main()
 
-    # cursor.execute("SELECT * FROM Category")
-    # # cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-    # results = cursor.fetchall()
 
-    # # Print the results
-    # print(results)
-    # print(type(results))
-    # print(type(results[0]))
-    # for row in results:
-    #     print(row)
+    
 
-    # # Close the cursor and the connection
-    # cursor.close()
-    # conn.close()
+
+

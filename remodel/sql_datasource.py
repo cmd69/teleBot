@@ -1,63 +1,56 @@
 from remodel import DataSource
 from classes import AbstractCRUD, AbstractUser
 from connectors import SqliteConnector
-from classes import User
-
+from classes import User, AbstractTransaction, AbstractUser, Expense
+from datetime import date as Date
 
 class SQLDataSource(DataSource):
-    """
-    Concrete Components provide default implementations of the operations. There
-    might be several variations of these classes.
-    """
 
     def __init__(self):
         self.connection = SqliteConnector()
 
     # ---- CRUD operations ---- #
 
-    def create(self, user: AbstractUser, obj: AbstractCRUD= None) -> str:
-        print(obj)
+    def create(self, user: AbstractUser, obj: AbstractCRUD= None) -> AbstractCRUD:
         query = obj.create()
-        self.connection.execute(user, query)
-        return "Nuevo gasto creado en SQLDataSource"
+        return self.connection.execute(user, *query)
     
     def read(self, user: AbstractUser, obj: AbstractCRUD= None) -> AbstractCRUD:
-        if obj is None:
-            query = user.read()
-        else:
-            query = obj.read()
-        
-        print(query)
+        query = user.read() if obj is None else obj.read()
         return self.connection.execute(user, query)
-
-        
-        
     
-    def update(self, user: AbstractUser, obj: AbstractCRUD=None) -> str:
-        obj.update()
-        return "Actualizando gasto en SQLDataSource"
+    def update(self, user: AbstractUser, obj: AbstractCRUD=None) -> AbstractCRUD:
+        query = user.update() if obj is None else obj.update()
+        return self.connection.execute(user, query)
     
-    def delete(self, user: AbstractUser, obj: AbstractCRUD=None) -> str:
-        obj.delete()
-        return "Eliminando gasto en SQLDataSource"
+    def delete(self, user: AbstractUser, obj: AbstractCRUD=None) -> AbstractCRUD:
+        query = user.delete() if obj is None else obj.delete()
+        return self.connection.execute(user, query)
     
 
     # ---- SQL Specific operations ---- #
 
-    def get_expenses_by_month(self):
-        return "Getting expenses by month in SQLDataSource"
-    
-    def get_incomes_by_month(self, chatID, date):
-        return "Getting incomes by month in SQLDataSource"
+    def get_month_transactions(self, user: AbstractUser, transaction: type[AbstractTransaction], month: Date):
+        query = transaction.get_month_transactions(user, month)
 
-    def get_all_expenses(self, chatID):
-        return "Getting all expenses in SQLDataSource"
+        return self.connection.execute(user, query)
+
+    def get_range_transactions(self,user: AbstractUser, 
+                               transaction: AbstractTransaction,
+                               month_start: Date,
+                               month_end: Date):
+        
+        pass
+
+    def get_all_transactions(self, user: AbstractUser):
+        pass
+
+    def get_avg_month_transactions(self, user: AbstractUser):
+        pass
     
-    def get_all_incomes(self, chatID):      
-        return "Getting all incomes in SQLDataSource"
+
+    # ---- USER Related Operations ---- #
+
+    def get_user_decorators(self, user: AbstractUser):
+        return False
     
-    def get_all_categories(self):
-        return "Getting all categories in SQLDataSource"
-    
-    def get_average_category_expense(self, chatID):
-        return "Getting average category expense in SQLDataSource"

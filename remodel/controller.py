@@ -6,7 +6,7 @@ from decorators import SheetsDecorator, SheetsDecoratorInterface
 class Controller():
     def __init__(self) -> None:
         self.dsource_base = SQLDataSource()
-        self.dsources = []
+        self.dsources = {}
 
     def __getattribute__(self, __name: str) -> Any:
         try:
@@ -26,12 +26,23 @@ class Controller():
         return proxy
 
     def _get_dsource(self, user: AbstractUser) -> DataSource:
-        dsource = self.dsource_base
-        dsource = SheetsDecorator(dsource)
-        return dsource
+        if user in self.dsources:
+            return self.dsources[user]
+        else:
+            dsource = self._create_datasource(user)
+            self.dsources[user] = dsource
+            return dsource
 
     def _create_datasource(self, user: AbstractUser) -> DataSource:
+        
         dsource = SQLDataSource()
+        sheets_on = self.dsource_base.get_user_decorators(user)
+        
+        if sheets_on:
+            dsource = SheetsDecorator(dsource)
+        
+        self.dsources[user] = dsource
+        
         return dsource
 
     # def create(self, user: AbstractUser, obj: AbstractCRUD= None) -> AbstractCRUD:
